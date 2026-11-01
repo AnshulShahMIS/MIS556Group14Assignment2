@@ -7,7 +7,7 @@ import {knowledge,analyze,makePlan,questions,interviewFeedback,retrieve,sampleRe
 import {readResume} from './uploads.mjs';
 const $=s=>document.querySelector(s);
 let apiConfig={configured:false};let apiBase='';
-try{apiBase=await readApiBase();if(['127.0.0.1','localhost'].includes(location.hostname))apiBase='';const response=await fetch(apiEndpoint(apiBase,'/api/status'),{signal:AbortSignal.timeout(3000)});if(response.ok)apiConfig=await response.json()}catch{}
+try{apiBase=await readApiBase();const response=await fetch(apiEndpoint(apiBase,'/api/status'),{signal:AbortSignal.timeout(3000)});if(response.ok)apiConfig=await response.json()}catch{}
 const liveEnabled=apiConfig.configured===true;
 let liveHistory=[],liveBusy=false,liveController=null,liveVersion=0;
 let resume='',job='',role='',result=null,waiting='idle',questionIndex=0,docs=[...knowledge],uploadVersion=0,transcript=[],completed=new Set();

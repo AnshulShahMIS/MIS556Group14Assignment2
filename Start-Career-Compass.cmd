@@ -2,13 +2,15 @@
 setlocal
 if not exist "%~dp0serve.mjs" (
   echo Career Compass needs the complete extracted folder.
-  echo Right-click Career-Compass-v0.4.zip and choose Extract All.
+  echo Right-click the downloaded ZIP and choose Extract All.
   echo Open the extracted career-compass folder, then run this launcher again.
   echo Keep serve.mjs and the dist folder beside this launcher.
   pause
   exit /b 1
 )
 cd /d "%~dp0"
+echo Open http://127.0.0.1:4173 in your browser after the listening message.
+echo Keep this window open while using the app. Press Ctrl+C to stop.
 set "CAREER_NODE=%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
 if exist "%CAREER_NODE%" (
   "%CAREER_NODE%" "%~dp0serve.mjs"

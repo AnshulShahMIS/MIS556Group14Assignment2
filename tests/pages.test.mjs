@@ -3,8 +3,16 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,readFileSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {normalizeApiBase,apiEndpoint} from '../dist/api-client.mjs';
+import {normalizeApiBase,apiEndpoint,readApiBase} from '../dist/api-client.mjs';
 import {buildPages} from '../scripts/build-pages.mjs';
+test('downloaded local copies bypass the public backend configuration',async()=>{
+ for(const host of ['localhost','127.0.0.1','[::1]']){
+  const base=await readApiBase(()=>{throw Error('Local use must not load the hosted API address');},host);
+  assert.equal(apiEndpoint(base,'/api/chat'),'/api/chat');
+ }
+ const base=await readApiBase(async()=>({ok:true,json:async()=>({apiBaseUrl:'https://coach.example'})}),'anshulshahmis.github.io');
+ assert.equal(base,'https://coach.example');
+});
 test('public API configuration accepts HTTPS and excludes credential-bearing addresses',()=>{
  assert.equal(normalizeApiBase('https://coach.example/'),'https://coach.example');
  assert.equal(apiEndpoint('https://coach.example','/api/chat'),'https://coach.example/api/chat');

@@ -1,9 +1,9 @@
 $ErrorActionPreference = 'Stop'
 Write-Host 'Career Compass local API key setup'
-Write-Host 'Use a NEW key. Revoke any key previously pasted into chat.'
+Write-Host 'Use your own OpenAI API key. Do not paste it into GitHub or chat.'
 Write-Host 'Input is hidden. The key will be stored in .env beside serve.mjs, outside the public dist folder.'
 Write-Host 'Do not share or manually zip the .env file.'
-$careerSecret = Read-Host 'Paste the replacement OpenAI API key and press Enter' -AsSecureString
+$careerSecret = Read-Host 'Paste your OpenAI API key and press Enter' -AsSecureString
 $careerPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($careerSecret)
 try {
   $careerKey = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($careerPointer).Trim()

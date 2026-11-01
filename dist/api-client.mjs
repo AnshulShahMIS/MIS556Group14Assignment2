@@ -10,7 +10,9 @@ export function apiEndpoint(base,path){
  if(!['/api/status','/api/chat'].includes(path))throw Error('Unknown AI endpoint.');
  return normalizeApiBase(base)+path;
 }
-export async function readApiBase(request=fetch){
+export async function readApiBase(request=fetch,hostname=globalThis.location?.hostname){
+ // Downloaded copies always use their own server, even with the Pages config present.
+ if(['localhost','127.0.0.1','[::1]'].includes(hostname))return '';
  const response=await request(new URL('./api-config.json',import.meta.url),{cache:'no-store'});
  if(!response.ok)throw Error('AI connection settings could not be loaded.');
  const config=await response.json();return normalizeApiBase(config.apiBaseUrl);

@@ -1,5 +1,7 @@
 # Career Compass with GitHub Pages
 
+**Professor / independent evaluation:** Download and extract this repository, then follow [PROFESSOR-START-HERE.md](PROFESSOR-START-HERE.md) to run your own copy with your own API key. Windows setup and start launchers are included. Localhost always uses the local backend, without a shared-key fallback.
+
 The public interface runs on GitHub Pages. AI requests go to a separate Node backend; GitHub Pages cannot execute the server or protect an API key in browser code. This repository includes both components and a deployment workflow. It does not include credentials or real student resumes.
 
 ## Deployment order
