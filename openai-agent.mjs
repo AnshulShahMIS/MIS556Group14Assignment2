@@ -68,8 +68,8 @@ export async function runOpenAICoach(payload,{apiKey=process.env.OPENAI_API_KEY,
   } catch {throw new CoachError(signal?.aborted?'The AI request timed out or was cancelled. Try again.':'Could not reach OpenAI. Check your connection and retry.',504);}
   if(!response.ok){
    // Never return arbitrary provider bodies: they may contain request data.
-   const errors={401:'OpenAI rejected the API key. Update it and restart the server.',403:'The project cannot access this model. Check model permissions.',429:'OpenAI limited this request or the project has no available API quota. Check billing and limits, then retry.'};
-   throw new CoachError(errors[response.status]||`OpenAI returned HTTP ${response.status}. Please retry later.`,response.status===429?429:502);
+   const errors={401:'OpenAI rejected this API key. Replace it in AI settings, or update your local server key.',403:'The project cannot access this model. Check model permissions.',429:'OpenAI limited this request or the project has no available API quota. Check billing and limits, then retry.'};
+   throw new CoachError(errors[response.status]||`OpenAI returned HTTP ${response.status}. Please retry later.`,response.status===401?401:response.status===429?429:502);
   }
   const data=await response.json();
   usage.modelCalls++;usage.inputTokens+=data.usage?.input_tokens||0;usage.outputTokens+=data.usage?.output_tokens||0;

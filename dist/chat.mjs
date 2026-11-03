@@ -1,6 +1,7 @@
 import {createChatStore,historyKey,encodeNode,decodeNode} from './chat-store.mjs';
 import {conversationalReply} from './reply-presentation.mjs';
 import {manualRequirementKey} from './manual-requirements.mjs';
+import {createTabKey} from './tab-key.mjs';
 import {readApiBase,apiEndpoint} from './api-client.mjs';
 import {classifyInterviewRequest,conversationControl,buildAnswerDraft} from './interview-assist.mjs';
 import {suggestNextStep,inferDocumentType} from './journey.mjs';
@@ -9,7 +10,8 @@ import {readResume} from './uploads.mjs';
 const $=s=>document.querySelector(s);
 let apiConfig={configured:false};let apiBase='';
 try{apiBase=await readApiBase();const response=await fetch(apiEndpoint(apiBase,'/api/status'),{signal:AbortSignal.timeout(3000)});if(response.ok)apiConfig=await response.json()}catch{}
-const liveEnabled=apiConfig.configured===true;
+const tabKey=createTabKey();
+let liveEnabled=apiConfig.configured===true;
 let liveHistory=[],liveBusy=false,liveController=null,liveVersion=0;
 let resume='',job='',role='',result=null,waiting='idle',questionIndex=0,docs=[...knowledge],uploadVersion=0,transcript=[],completed=new Set();
 let requestedTask=null,journeyStage=0,lastTaskMessage='',draftTopic='introduction',draftQuestion='',practiceTopic=null,draftActive=false;
@@ -39,7 +41,7 @@ function handleAction(action,echo=true){
  }
 if(['resume','plan','gaps','interview','finish-interview','next-question','practice-draft'].includes(action))draftActive=false;if(action==='interview-draft'){showAnswerDraft(lastTaskMessage);return}if(action==='draft-introduction'){showAnswerDraft('Help me answer tell me about yourself.');return}if(action==='draft-details'){waiting='draft-context';say('You already have a starting template. To tailor it, send one message with Degree/current role, Project or responsibility, and Target role. You can use labels such as “Target role: Business Analyst Intern”. Share only facts you want included.');status();return}if(action==='interview-help'){waiting='idle';const box=say('I can help in two ways: draft an answer to a question, or run a mock interview. Which would be useful?');actions(box,[['Help draft my introduction','draft-introduction'],['Start a mock interview','interview']]);status();return}if(['plan','gaps'].includes(action)&&(!resume||!job))requestedTask=action;if(extraAction(action))return;if(action==='sources'){showSources();return}if(action==='next-question'){questionIndex=(questionIndex+1)%5;askQuestion();return}if(action==='finish-interview'){waiting='idle';const box=say('Practice paused. What would you like to work on next?');actions(box,[['Review my resume','resume'],['Make an action plan','plan']]);status();return}const prompts={resume:'Help me review my resume.',gaps:'Show me my skill insights.',interview:'Help me practice for an interview.',plan:'Help me plan my next steps.'};if(echo&&prompts[action])say(prompts[action],'user');if(action==='resume'){if(resume&&job){compare()}else if(resume)askJob();else askResume()}else if(action==='gaps'){showGaps()}else if(action==='plan'){showPlan()}else if(action==='interview'){questionIndex=0;askQuestion()}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(b)handleAction(b.dataset.action)});
-function receive(text){if(liveBusy)return;say(text,'user');if(liveEnabled){sendLive(text);return}const control=conversationControl(text);if(control){waiting='idle';requestedTask=null;if(control==='stop'){draftActive=false;say('Practice paused. Tell me what you would like help with next.');status();return}if(classifyInterviewRequest(lastTaskMessage)?.intent==='interview-draft'){const box=say('Let’s change the approach rather than repeat the same draft. I can tailor it to your actual experience, or help with a different interview question.');actions(box,[['Use my details to tailor it','draft-details'],['Draft a different answer','draft-other']]);status();return}const box=say('I misunderstood what you wanted. Let’s change direction. I can help you draft an interview answer instead of asking practice questions.');actions(box,[['Help draft my introduction','draft-introduction'],['Ask me a mock question','interview']]);status();return}const interviewRequest=classifyInterviewRequest(text);if(interviewRequest){lastTaskMessage=text;practiceTopic=interviewRequest.topic;if(interviewRequest.intent==='interview-draft'||interviewRequest.intent==='interview-help'||interviewRequest.intent==='interview'){requestedTask=null;handleAction(interviewRequest.intent,false);return}}if(waiting==='draft-context'){showAnswerDraft(draftQuestion,text);return}if(waiting==='draft-question'){showAnswerDraft(text);return}const inferred=waiting==='idle'?inferDocumentType(text):null;if(inferred==='resume'){resume=text;result=null;completed.clear();if(job)compare();else askJob();return}if(inferred==='job'){job=text;const first=text.split('\n')[0].trim();role=first.length<=120?first:'Your target role';if(resume)compare();else askResume();return}const intent=routeIntent(text);if(intent)lastTaskMessage=text;if(intent&&(waiting==='idle'||/^(help|please|can you|show|start|practice|review|create|build|make)\b/i.test(text))){handleAction(intent,false);return}
+function receive(text){if(liveBusy)return;if(/^sk-[A-Za-z0-9_-]{20,}$/.test(text.trim())){openAISettings();notify('Enter your key in AI settings, not in the chat.');return}say(text,'user');if(liveEnabled){sendLive(text);return}const control=conversationControl(text);if(control){waiting='idle';requestedTask=null;if(control==='stop'){draftActive=false;say('Practice paused. Tell me what you would like help with next.');status();return}if(classifyInterviewRequest(lastTaskMessage)?.intent==='interview-draft'){const box=say('Let’s change the approach rather than repeat the same draft. I can tailor it to your actual experience, or help with a different interview question.');actions(box,[['Use my details to tailor it','draft-details'],['Draft a different answer','draft-other']]);status();return}const box=say('I misunderstood what you wanted. Let’s change direction. I can help you draft an interview answer instead of asking practice questions.');actions(box,[['Help draft my introduction','draft-introduction'],['Ask me a mock question','interview']]);status();return}const interviewRequest=classifyInterviewRequest(text);if(interviewRequest){lastTaskMessage=text;practiceTopic=interviewRequest.topic;if(interviewRequest.intent==='interview-draft'||interviewRequest.intent==='interview-help'||interviewRequest.intent==='interview'){requestedTask=null;handleAction(interviewRequest.intent,false);return}}if(waiting==='draft-context'){showAnswerDraft(draftQuestion,text);return}if(waiting==='draft-question'){showAnswerDraft(text);return}const inferred=waiting==='idle'?inferDocumentType(text):null;if(inferred==='resume'){resume=text;result=null;completed.clear();if(job)compare();else askJob();return}if(inferred==='job'){job=text;const first=text.split('\n')[0].trim();role=first.length<=120?first:'Your target role';if(resume)compare();else askResume();return}const intent=routeIntent(text);if(intent)lastTaskMessage=text;if(intent&&(waiting==='idle'||/^(help|please|can you|show|start|practice|review|create|build|make)\b/i.test(text))){handleAction(intent,false);return}
  if(waiting==='resume'){if(text.length<40){say('Please share a little more detail—at least 40 characters of education, skills, projects, or experience.');return}resume=text;result=null;completed.clear();if(job)compare();else askJob();return}
  if(waiting==='job'){if(text.length<40){say('Please paste a longer job description with responsibilities and qualifications—at least 40 characters.');return}job=text;const first=text.split('\n')[0].trim();role=first.length<=120?first:'Your target role';compare();return}
  if(waiting==='answer'){if(text.trim().length<30){say('Try a few sentences so you can review the structure. What happened, what did you do, and what was the outcome?');return}const f=interviewFeedback(text),box=say('Let’s review the structure of your answer ('+f.words+' words).');for(const item of f.items)paragraph(box,(item.signal?'✓ Possible signal':'○ Check this')+': '+item.label+' — '+item.tip);paragraph(box,f.note,'small-note');box.append(node('h3','A follow-up to strengthen your story'));paragraph(box,f.followUp);actions(box,[['Try another question','next-question'],['Finish practice','finish-interview']]);return}
@@ -65,7 +67,7 @@ function extraAction(action){if(action==='history'){openHistoryDialog();return t
  if(action==='profile'){const box=panel('Your goals and time budget');paragraph(box,'Optional context stays in this tab or a session file you explicitly save. The weekly plan uses your available hours.');for(const [key,label,type] of [['degree','Degree / academic context','text'],['experience','Experience you want to highlight','text'],['goal','Career goal / industry','text'],['hoursPerWeek','Hours available each week','number']]){const l=node('label',label),input=node('input');input.type=type;input.value=profile[key];input.maxLength=240;input.id='profile-'+key;l.htmlFor=input.id;if(type==='number'){input.min=1;input.max=20}box.append(l,input)}const save=node('button','Use these goals','chip');save.addEventListener('click',()=>{for(const key of ['degree','experience','goal'])profile[key]=$('#profile-'+key).value.trim().slice(0,240);profile.hoursPerWeek=Math.max(1,Math.min(20,Number($('#profile-hoursPerWeek').value)||3));$('#panel').close();say('Your plan will use a weekly budget of '+profile.hoursPerWeek+' hours.'+(profile.goal?' Your stated goal: '+profile.goal:''));});box.append(save);return true}
  if(action==='save-session'){downloadSession();return true}
  if(action==='open-session'){$('#session-file').click();return true}
- if(action==='project'){const box=panel('Project evidence and readiness');paragraph(box,liveEnabled?'This edition connects a coordinator to three specialist agents, guidance retrieval and scoped career tools. Expand Sources and agent activity to inspect actual actions. This multi-agent edition is local; public deployment and student usefulness testing remain.':'This version uses offline rules. Configure a server-side API key and restart to enable AI.');const a=node('a','Open the project evidence page ↗');a.href='project.html';a.target='_blank';a.rel='noopener noreferrer';box.append(a);paragraph(box,'The page documents scope, architecture, evaluation, privacy, limitations and presentation readiness. Automated results are not student usability results.');return true}
+ if(action==='project'){const box=panel('Project evidence and readiness');paragraph(box,liveEnabled?'This edition connects a coordinator to three specialist agents, guidance retrieval and scoped career tools. Expand Sources and agent activity to inspect actual actions. The hosted app supports visitor-owned API keys. Student usefulness testing remains.':'Practice mode uses local templates. Select API key to use AI with your own account, or configure a private key for a downloaded local copy.');const a=node('a','Open the project evidence page ↗');a.href='project.html';a.target='_blank';a.rel='noopener noreferrer';box.append(a);paragraph(box,'The page documents scope, architecture, evaluation, privacy, limitations and presentation readiness. Automated results are not student usability results.');return true}
  return false;
 }
 function downloadSession(){if(!resume&&!job&&!transcript.length){notify('Start a conversation first.');return}const payload={format:'career-compass-session',version:1,resume,job,role,profile,completed:[...completed]};const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));const a=node('a');a.href=url;a.download='career-compass-private-session.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Session saved. It includes resume text; store it privately.');}
@@ -101,12 +103,12 @@ async function sendLive(text){
  pending.setAttribute('role','status');
  status();$('#input-hint').textContent='Working on your request…';
  try{
-  const response=await fetch(apiEndpoint(apiBase,'/api/chat'),{method:'POST',headers:{'Content-Type':'application/json'},signal:liveController.signal,
+  const response=await fetch(apiEndpoint(apiBase,'/api/chat'),{method:'POST',headers:{'Content-Type':'application/json',...tabKey.headers()},signal:liveController.signal,
    body:JSON.stringify({message:text,history,context:{resume,job,role,profile,addedSources:docs.filter(d=>d.id.startsWith('custom-')).map(d=>({title:d.title,text:d.text}))}})});
   const answer=await response.json();
   if(version!==liveVersion)return;
   pending.closest('.message').remove();
-  if(!response.ok)throw Error(answer.error||'The AI request failed. Please retry.');
+  if(!response.ok){if(response.status===401&&tabKey.has()){tabKey.clear();updateAIConnection();}throw Error(answer.error||'The AI request failed. Please retry.');}
   const box=say(conversationalReply(answer.text));box.classList.add('live-answer');
   liveHistory.push({role:'assistant',content:answer.text.slice(0,6000)});
   const details=node('details',undefined,'supporting-details');details.append(node('summary','Sources and agent activity'));
@@ -124,12 +126,50 @@ async function sendLive(text){
   if(version===liveVersion){setLiveBusy(false);liveController=null;status();$('#message').focus()}
  }
 }
-if(liveEnabled){
+function updateAIConnection(){
+ liveEnabled=tabKey.has()||apiConfig.configured===true;
+ $('#api-settings').textContent=tabKey.has()?'My key loaded':'API key';
+ $('#connect-ai').hidden=liveEnabled;
+ $('#api-settings').setAttribute('aria-label',tabKey.has()?'Manage my API key':'Use my OpenAI API key');
+ if(liveEnabled){
  $('.practice-badge').textContent=apiConfig.architecture==='multi-agent'?'MULTI-AGENT':'AI MODE';
- $('.mode-note').textContent='AI mode · Messages and supplied documents are sent to OpenAI. Verify advice and citations. Use redacted data.';
+ $('.mode-note').textContent=tabKey.has()?'Your key · This tab only. Requests and supplied documents go through the AI server to OpenAI.':'Local AI mode · Your server key is used. Messages and supplied documents are sent to OpenAI.';
  $('.side-footer small').textContent='Chats saved on this device';
  $('#coach-next-step').textContent='Tell me what you need. I can draft an answer, review your experience, or help you choose a next step.';
+ }else{
+  $('.practice-badge').textContent='PRACTICE';
+  $('.mode-note').textContent='Practice mode · Template replies. Select API key to use AI with your own account.';
+ }
 }
+function cancelKeyRequest(){
+ if(!liveBusy)return;
+ liveVersion++;liveController?.abort();liveController=null;setLiveBusy(false);
+ for(const message of [...$('#messages').children])if(message.querySelector('[role="status"]'))message.remove();
+ say('The AI request was cancelled after the key was changed or cleared. Send your request again to continue.');
+}
+function openAISettings(){
+ const box=panel('Use your own OpenAI API key');
+ paragraph(box,apiBase?'Your key pays for your AI requests. It is sent over HTTPS through the configured Career Compass AI server to OpenAI. Use this option only if you trust this app and its hosting.':'Your key pays for your AI requests. It is sent to this local server, then over HTTPS to OpenAI.');
+ paragraph(box,'AI server: '+(apiBase?new URL(apiBase).hostname:location.host),'small-note');
+ paragraph(box,'Model: '+(apiConfig.model||'configured by the server')+'. Your API account needs model access and available quota.','small-note');
+ paragraph(box,'Kept only in this tab’s memory. The app does not save it in chats, exports or browser storage. Refreshing or closing the tab removes it. Authentication and quota are checked on your first AI request.');
+ if(apiConfig.configured)paragraph(box,'This local copy already has a server key. A key entered here overrides it for this tab.');
+ const label=node('label','OpenAI API key','api-key-label');label.htmlFor='visitor-key';
+ const input=node('input');input.id='visitor-key';input.type='password';input.autocomplete='off';input.spellcheck=false;input.setAttribute('data-api-secret','');input.setAttribute('autocapitalize','none');input.setAttribute('placeholder','sk-…');
+ const error=node('p','','api-key-error');error.setAttribute('role','alert');
+ const use=node('button','Use key for this tab','chip');use.type='button';
+ use.addEventListener('click',()=>{try{cancelKeyRequest();tabKey.set(input.value);input.value='';updateAIConnection();status();$('#panel').close();notify('Your key is loaded for this tab. Send a message to use AI.');}catch(problem){input.value='';error.textContent=problem.message;input.focus();}});
+ box.append(label,input,error,use);
+ if(tabKey.has()){const clear=node('button','Clear my key','chip');clear.type='button';clear.addEventListener('click',()=>{cancelKeyRequest();tabKey.clear();input.value='';updateAIConnection();status();$('#panel').close();notify('Your key was cleared from this tab.');});box.append(clear);}
+ const link=node('a','Manage API keys at OpenAI ↗');link.href='https://platform.openai.com/api-keys';link.target='_blank';link.rel='noopener noreferrer';box.append(link);
+ input.focus();
+}
+$('#api-settings').addEventListener('click',openAISettings);
+$('#connect-ai').addEventListener('click',openAISettings);
+$('#panel').addEventListener('close',()=>{for(const input of $('#panel').querySelectorAll('[data-api-secret]'))input.value='';});
+window.addEventListener('pagehide',()=>{cancelKeyRequest();tabKey.clear();for(const input of $('#panel').querySelectorAll('[data-api-secret]'))input.value='';});
+window.addEventListener('pageshow',event=>{if(event.persisted){tabKey.clear();updateAIConnection();}});
+updateAIConnection();
 
 let chatStore=null,currentChatId=null,historyTimer=null,historyWarning=false;
 try{chatStore=createChatStore(localStorage)}catch{}
@@ -138,7 +178,7 @@ function captureConversation(){
  return {resume,job,role,profile,waiting,questionIndex,requestedTask,journeyStage,lastTaskMessage,draftTopic,draftQuestion,practiceTopic,draftActive,
   liveHistory:liveHistory.slice(-20),completed:[...completed],customSources:docs.filter(d=>d.id.startsWith('custom-')),
   transcript:messages.map(m=>({speaker:m.classList.contains('user')?'user':'coach',text:m.querySelector('.message-content')?.textContent||''})),
-  messages:messages.map(encodeNode),draftInput:$('#message').value,scrollTop:$('#chat-scroll').scrollTop};
+  messages:messages.map(encodeNode),draftInput:/^sk-[A-Za-z0-9_-]{20,}$/.test($('#message').value.trim())?'':$('#message').value,scrollTop:$('#chat-scroll').scrollTop};
 }
 function saveConversation(){
  clearTimeout(historyTimer);if(!chatStore||!currentChatId){if(!historyWarning){notify('Browser storage is unavailable. Export this chat before leaving it.');historyWarning=true}return false;}

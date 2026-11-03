@@ -23,7 +23,7 @@ test('hosted backend permits the configured Pages origin and applies a shared da
   const preflight=await fetch(base+'/api/chat',{method:'OPTIONS',headers:{Origin:origin,'Access-Control-Request-Method':'POST'}});assert.equal(preflight.status,204);assert.equal(preflight.headers.get('access-control-allow-origin'),origin);
   const denied=await fetch(base+'/api/status',{headers:{Origin:'https://untrusted.example'}});assert.equal(denied.status,403);assert.equal(invoked,0);
   for(let i=0;i<3;i++){
-   const response=await fetch(base+'/api/chat',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:'{"message":"Hello"}'});assert.equal(response.status,i<2?200:429);
+   const response=await fetch(base+'/api/chat',{method:'POST',headers:{Origin:origin,Authorization:'Bearer sk-'+ 'v'.repeat(32),'Content-Type':'application/json'},body:'{"message":"Hello"}'});assert.equal(response.status,i<2?200:429);
   }
   assert.equal(invoked,2);
  }finally{await new Promise(resolve=>server.close(resolve));}

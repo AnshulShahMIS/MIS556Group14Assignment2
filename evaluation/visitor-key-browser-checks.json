@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-03",
+  "scope": "Local browser, synthetic test key only. No real key entered in the browser test.",
+  "checks": {
+    "passwordField": true,
+    "invalidFormatSafeError": true,
+    "loadKeyEnablesAIControls": true,
+    "clearKeyReturnsToPractice": true,
+    "refreshRemovesKey": true,
+    "chatSurvivesRefresh": true,
+    "welcomeConnectButton": true,
+    "rejectedProviderKeyClearsConnection": true
+  },
+  "limitations": [
+    "Keys remain accessible to the current page and potentially browser extensions while in memory.",
+    "A browser reload intentionally requires re-entry.",
+    "Provider authentication is tested on the first AI request."
+  ]
+}

@@ -23,8 +23,8 @@ export async function runOpenAIMultiAgent(payload,{apiKey=process.env.OPENAI_API
   catch{throw fatal(new CoachError(signal?.aborted?'The request was cancelled or timed out. Please retry.':'Could not reach OpenAI. Check your connection and retry.',504));}
   usage.modelCalls++;
   if(!response.ok){
-   const messages={401:'OpenAI rejected the API key. Update it and restart the server.',403:'The project cannot access this model. Check model permissions.',429:'OpenAI limited this request or the project has no available quota. Check billing and limits.'};
-   throw fatal(new CoachError(messages[response.status]||'OpenAI could not complete this request. Please retry.',response.status===429?429:502));
+   const messages={401:'OpenAI rejected this API key. Replace it in AI settings, or update your local server key.',403:'The project cannot access this model. Check model permissions.',429:'OpenAI limited this request or the project has no available quota. Check billing and limits.'};
+   throw fatal(new CoachError(messages[response.status]||'OpenAI could not complete this request. Please retry.',response.status===401?401:response.status===429?429:502));
   }
   const data=await response.json();usage.inputTokens+=data.usage?.input_tokens||0;usage.outputTokens+=data.usage?.output_tokens||0;
   if(data.status==='incomplete')throw new CoachError('An agent response was incomplete. Try a narrower request.');

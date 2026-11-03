@@ -1,15 +1,13 @@
-# Local OpenAI API setup
+# Use your own API key
 
-This build adds a hidden-input Windows setup launcher and server-side environment loading. The chat uses the server-side key to connect one AI coach when configured.
+## Public website
 
-1. Revoke the key pasted into chat at https://platform.openai.com/api-keys and create a replacement. Do not paste the replacement into chat.
-2. Extract the complete Career-Compass-API-Setup.zip into a new folder. Open its career-compass folder.
-3. Double-click Setup-API-Key.cmd. Paste the replacement into the hidden terminal prompt and press Enter. The setup stores it in .env beside serve.mjs. This is a local plaintext configuration file, excluded by .gitignore and outside the served dist directory. Do not share it or include it in manually created archives.
-4. Read the authentication result. A successful /v1/models check confirms access to that endpoint only. A restricted key may deny listing models even if it has other permissions. This check does not validate generation permissions, available credits or a particular model.
-5. Close the old app server and run Start-Career-Compass.cmd from this new folder.
+Open https://anshulshahmis.github.io/MIS556Group3Assignment2/, choose API key, enter your OpenAI API key in the password field, and choose Use key for this tab. Send a career question to check authentication, model access and quota. Use Clear my key when finished. A refresh or closed tab requires re-entry.
 
-An existing OPENAI_API_KEY environment variable takes precedence over .env. Remove or replace an outdated environment value if setup appears to use an old key. To retry the saved configuration, run check-api-key.mjs using Node. No resume or student content is sent by the authentication check.
+The app sends your credential over HTTPS through the configured Career Compass backend to OpenAI for each AI request. Only use this feature if you trust the site and its hosting. Your account pays for the model calls. The app does not put this key in GitHub files, chat history, exports or browser storage. Public requests without a key cannot use an owner-key fallback; practice templates remain available.
 
-Restarting the server loads the key and enables AI mode. Actual generation still depends on model access, available quota and a working connection. Online hosting is pending.
+## Optional local copy
 
-The setup launcher runs the included PowerShell script with a process-local execution policy setting; it does not change your machine's saved execution policy. Inspect the script before running it if desired.
+Download and extract the project. With Node.js 22+ installed, run Setup-API-Key.cmd to save a private .env beside serve.mjs, then Start-Career-Compass.cmd. Open http://127.0.0.1:4177. Input in the setup prompt is hidden. Do not edit the PowerShell script to insert the key, and do not share the folder after adding .env. No npm install is needed.
+
+A local server key can also be temporarily overridden using the website’s API key button. Clearing that override restores the local copy’s configured server key. The public hosted site always requires a visitor key instead.

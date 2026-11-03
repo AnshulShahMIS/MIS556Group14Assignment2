@@ -1,3 +1,17 @@
+# Use Career Compass with your own API key
+
+## Online — no download needed
+
+1. Open https://anshulshahmis.github.io/MIS556Group3Assignment2/.
+2. Select API key in the header or Use AI with my key on the welcome screen.
+3. Enter your own OpenAI API key in the password field and select Use key for this tab. Do not paste a key into the chat or GitHub files.
+4. Send a career question. Authentication, model permissions and quota are checked when the first request runs.
+5. Use Clear my key in AI settings when finished. Refreshing or closing the tab also removes it from application memory.
+
+Your key goes over HTTPS through the configured Career Compass AI backend to OpenAI for requests billed to your API account. The app does not save it in chat history, exports, browser storage or application logs. You must trust the app and its hosting. No shared owner key is used for public requests.
+
+## Optional downloaded copy
+
 # Run Career Compass with your own API key
 
 This download contains the complete app and local server. No API key is included.
@@ -41,4 +55,4 @@ An existing OPENAI_API_KEY environment variable takes priority over `.env`; remo
 - Keep `.env` private. It is ignored by Git, but manually zipping the folder can still include it. Do not upload or email the folder after adding your key.
 - The local backend sends supplied messages, document text, context, and retrieved guidance to OpenAI for AI replies. Use fictional or redacted inputs for evaluation.
 - Chats and document context remain in this browser's storage until deleted. They do not sync between computers. Delete demonstration chats on shared devices.
-- The public GitHub Pages link is a separate hosted deployment. These instructions configure only your downloaded copy; they do not change the public site's key or access.
+- The public GitHub Pages interface also supports per-tab visitor keys. The setup launchers configure only the downloaded copy.
