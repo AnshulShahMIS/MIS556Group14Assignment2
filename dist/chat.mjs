@@ -1,5 +1,6 @@
 import {createChatStore,historyKey,encodeNode,decodeNode} from './chat-store.mjs';
 import {conversationalReply} from './reply-presentation.mjs';
+import {manualRequirementKey} from './manual-requirements.mjs';
 import {readApiBase,apiEndpoint} from './api-client.mjs';
 import {classifyInterviewRequest,conversationControl,buildAnswerDraft} from './interview-assist.mjs';
 import {suggestNextStep,inferDocumentType} from './journey.mjs';
@@ -64,7 +65,7 @@ function extraAction(action){if(action==='history'){openHistoryDialog();return t
  if(action==='profile'){const box=panel('Your goals and time budget');paragraph(box,'Optional context stays in this tab or a session file you explicitly save. The weekly plan uses your available hours.');for(const [key,label,type] of [['degree','Degree / academic context','text'],['experience','Experience you want to highlight','text'],['goal','Career goal / industry','text'],['hoursPerWeek','Hours available each week','number']]){const l=node('label',label),input=node('input');input.type=type;input.value=profile[key];input.maxLength=240;input.id='profile-'+key;l.htmlFor=input.id;if(type==='number'){input.min=1;input.max=20}box.append(l,input)}const save=node('button','Use these goals','chip');save.addEventListener('click',()=>{for(const key of ['degree','experience','goal'])profile[key]=$('#profile-'+key).value.trim().slice(0,240);profile.hoursPerWeek=Math.max(1,Math.min(20,Number($('#profile-hoursPerWeek').value)||3));$('#panel').close();say('Your plan will use a weekly budget of '+profile.hoursPerWeek+' hours.'+(profile.goal?' Your stated goal: '+profile.goal:''));});box.append(save);return true}
  if(action==='save-session'){downloadSession();return true}
  if(action==='open-session'){$('#session-file').click();return true}
- if(action==='project'){const box=panel('Project evidence and readiness');paragraph(box,liveEnabled?'This local version connects one AI coach to guidance retrieval and career tools. Open Sources and agent activity on a reply to inspect its actual tool calls. Online deployment and student usefulness testing are still pending.':'This version uses offline rules. Configure a server-side API key and restart to enable AI.');const a=node('a','Open the project evidence page ↗');a.href='project.html';a.target='_blank';a.rel='noopener noreferrer';box.append(a);paragraph(box,'The page documents scope, architecture, evaluation, privacy, limitations and presentation readiness. Automated results are not student usability results.');return true}
+ if(action==='project'){const box=panel('Project evidence and readiness');paragraph(box,liveEnabled?'This edition connects a coordinator to three specialist agents, guidance retrieval and scoped career tools. Expand Sources and agent activity to inspect actual actions. This multi-agent edition is local; public deployment and student usefulness testing remain.':'This version uses offline rules. Configure a server-side API key and restart to enable AI.');const a=node('a','Open the project evidence page ↗');a.href='project.html';a.target='_blank';a.rel='noopener noreferrer';box.append(a);paragraph(box,'The page documents scope, architecture, evaluation, privacy, limitations and presentation readiness. Automated results are not student usability results.');return true}
  return false;
 }
 function downloadSession(){if(!resume&&!job&&!transcript.length){notify('Start a conversation first.');return}const payload={format:'career-compass-session',version:1,resume,job,role,profile,completed:[...completed]};const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));const a=node('a');a.href=url;a.download='career-compass-private-session.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Session saved. It includes resume text; store it privately.');}
@@ -96,7 +97,7 @@ async function sendLive(text){
  const history=liveHistory.slice(-20);
  liveHistory.push({role:'user',content:text.slice(0,6000)});
  liveController=new AbortController();setLiveBusy(true);
- const pending=say('Reviewing your request and relevant guidance…');
+ const pending=say(apiConfig.architecture==='multi-agent'?'Your career team is reviewing your request and relevant guidance…':'Reviewing your request and relevant guidance…');
  pending.setAttribute('role','status');
  status();$('#input-hint').textContent='Working on your request…';
  try{
@@ -109,9 +110,10 @@ async function sendLive(text){
   const box=say(conversationalReply(answer.text));box.classList.add('live-answer');
   liveHistory.push({role:'assistant',content:answer.text.slice(0,6000)});
   const details=node('details',undefined,'supporting-details');details.append(node('summary','Sources and agent activity'));
+  if(answer.architecture==='multi-agent')paragraph(details,answer.agentsUsed?.length?'Consulted: '+answer.agentsUsed.join(' · '):'The coordinator handled this conversational reply directly.','small-note');
   for(const item of answer.sources||[])source(details,item);
   if(resume.length>=40&&job.length>=40){result=analyze(resume,job,role,docs);const inputs=node('details',undefined,'evidence');inputs.append(node('summary','Resume/job evidence — independent local rule checks'));evidence(inputs,result.rows);for(const line of result.manualReview)paragraph(inputs,'Review manually: '+line);details.append(inputs);}
-  for(const step of answer.trace||[])paragraph(details,step.step+'. '+step.tool+' — '+step.status,'small-note');
+  for(const step of answer.trace||[])paragraph(details,step.step+'. '+(step.agent?step.agent+' · ':'')+step.tool.replaceAll('_',' ')+' — '+step.status,'small-note');
   paragraph(details,`${answer.model} · ${(answer.elapsedMs/1000).toFixed(1)} seconds · ${answer.usage.modelCalls} model calls · ${answer.usage.inputTokens} input / ${answer.usage.outputTokens} output tokens. Source IDs are validated; check that each passage supports the advice.`,'small-note');
   box.append(details);journeyStage=3;status();$('#coach-next-step').textContent='Ask a follow-up, change direction, or share more context. You can inspect sources and actual tool activity below each AI reply.';scroll();
  }catch(error){
@@ -123,7 +125,7 @@ async function sendLive(text){
  }
 }
 if(liveEnabled){
- $('.practice-badge').textContent='AI MODE';
+ $('.practice-badge').textContent=apiConfig.architecture==='multi-agent'?'MULTI-AGENT':'AI MODE';
  $('.mode-note').textContent='AI mode · Messages and supplied documents are sent to OpenAI. Verify advice and citations. Use redacted data.';
  $('.side-footer small').textContent='Chats saved on this device';
  $('#coach-next-step').textContent='Tell me what you need. I can draft an answer, review your experience, or help you choose a next step.';
@@ -186,6 +188,9 @@ function openConversation(id){
  try{result=resume.length>=40&&job.length>=40?analyze(resume,job,role,docs):null}catch{result=null}
  for(const message of (Array.isArray(state.messages)?state.messages:[]))$('#messages').append(decodeNode(message,document));
  for(const reply of $('#messages').querySelectorAll('.live-answer > p:first-child'))reply.textContent=conversationalReply(reply.textContent);
+ for(const evidence of $('#messages').querySelectorAll('details.evidence')){
+  const seen=new Set();for(const line of evidence.querySelectorAll('p')){if(!line.textContent.startsWith('Review manually:'))continue;const key=manualRequirementKey(line.textContent.slice('Review manually:'.length));if(seen.has(key))line.remove();else seen.add(key);}
+ }
  transcript=(Array.isArray(state.transcript)?state.transcript:[]).filter(m=>m&&typeof m.text==='string');$('#welcome').hidden=$('#messages').children.length>0;
  $('#message').value=String(state.draftInput||'').slice(0,40000);$('#session-title').textContent=chat.title;status();renderHistory();
  requestAnimationFrame(()=>{$('#chat-scroll').scrollTop=Number(state.scrollTop)||0});

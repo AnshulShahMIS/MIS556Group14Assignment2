@@ -9,7 +9,7 @@ if not exist "%~dp0serve.mjs" (
   exit /b 1
 )
 cd /d "%~dp0"
-echo Open http://127.0.0.1:4173 in your browser after the listening message.
+echo Multi-agent edition: open http://127.0.0.1:4177 after the listening message.
 echo Keep this window open while using the app. Press Ctrl+C to stop.
 set "CAREER_NODE=%USERPROFILE%\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
 if exist "%CAREER_NODE%" (

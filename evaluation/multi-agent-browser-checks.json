@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-03",
+  "environment": "Local browser, separate multi-agent server on port 4177",
+  "checks": {
+    "multiAgentBadge": true,
+    "firstPersonDraftWithPlaceholders": true,
+    "actualInterviewSpecialistTrace": true,
+    "careerTopicSwitch": true,
+    "priorMisTableauContextUsed": true,
+    "repliesAndTraceRestoredAfterRefresh": true,
+    "noRawSourceFooter": true
+  },
+  "limitations": [
+    "An earlier draft request failed visibly; later successful output does not establish reliability across all prompts.",
+    "Mobile layouts and attachment extraction were not exhaustively retested for this edition.",
+    "No public multi-agent deployment or student study was performed."
+  ]
+}

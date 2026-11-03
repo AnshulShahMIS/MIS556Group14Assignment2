@@ -3,6 +3,7 @@ import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {CoachError,runOpenAICoach,defaultModel} from './openai-agent.mjs';
+import {runOpenAIMultiAgent} from './openai-multi-agent.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'dist');
 const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.json':'application/json; charset=utf-8','.md':'text/markdown; charset=utf-8'};
 const json=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(data));};
@@ -12,7 +13,8 @@ async function readJson(req){
  for await(const chunk of req){size+=chunk.length;if(size>300000)throw new CoachError('This request is too large. Shorten the conversation or documents.',413);chunks.push(chunk);}
  try{return JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw new CoachError('Invalid JSON request.',400);}
 }
-export function createCoachServer({coach=runOpenAICoach,apiKey=process.env.OPENAI_API_KEY,model=process.env.OPENAI_MODEL||defaultModel,publicOrigin=process.env.RENDER_EXTERNAL_URL||process.env.BACKEND_PUBLIC_URL||'',allowedOrigins=(process.env.ALLOWED_ORIGINS||'').split(',').filter(Boolean),dailyLimit=60}={}){
+export function createCoachServer({architecture=process.env.CAREER_COMPASS_AGENT_MODE||'multi-agent',coach=architecture==='single-agent'?runOpenAICoach:runOpenAIMultiAgent,apiKey=process.env.OPENAI_API_KEY,model=process.env.OPENAI_MODEL||defaultModel,publicOrigin=process.env.RENDER_EXTERNAL_URL||process.env.BACKEND_PUBLIC_URL||'',allowedOrigins=(process.env.ALLOWED_ORIGINS||'').split(',').filter(Boolean),dailyLimit=60}={}){
+ if(!['single-agent','multi-agent'].includes(architecture))throw Error('Invalid agent architecture.');
  const publicUrl=publicOrigin?new URL(publicOrigin):null;
  const allowed=new Set(allowedOrigins.map(value=>new URL(value.trim()).origin));
  let inFlight=0;let requests=[];let day='';let dailyRequests=0;
@@ -32,7 +34,7 @@ export function createCoachServer({coach=runOpenAICoach,apiKey=process.env.OPENA
    }
    if(req.method==='OPTIONS'){res.writeHead(204);res.end();return;}
   }
-  if(pathname==='/api/status'&&req.method==='GET')return json(res,200,{configured:Boolean(apiKey),model,version:'0.5.0'});
+  if(pathname==='/api/status'&&req.method==='GET')return json(res,200,{configured:Boolean(apiKey),model,version:'0.7.1',architecture});
   if(pathname==='/api/chat'){
    if(req.method!=='POST')return json(res,405,{error:'Use POST.'});
    if(!apiKey)return json(res,503,{error:'No API key is configured. Run Setup-API-Key.cmd and restart the server.'});
@@ -41,7 +43,7 @@ export function createCoachServer({coach=runOpenAICoach,apiKey=process.env.OPENA
    if(dailyRequests>=dailyLimit)return json(res,429,{error:'The shared daily demo limit has been reached. Please try again tomorrow.'});
    if(inFlight>=2||requests.length>=20)return json(res,429,{error:'The local coach is busy. Please wait a minute and retry.'});
    requests.push(Date.now());dailyRequests++;inFlight++;
-   const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),90000);
+   const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),120000);
    const close=()=>{if(!res.writableEnded)controller.abort();};res.on('close',close);
    try {const payload=await readJson(req);const answer=await coach(payload,{apiKey,model,signal:controller.signal});if(!res.destroyed)json(res,200,answer);}
    catch(error){if(!res.destroyed)json(res,error instanceof CoachError?error.status:502,{error:error instanceof CoachError?error.message:'The AI request failed. Please retry.'});}

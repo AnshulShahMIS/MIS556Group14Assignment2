@@ -1,48 +1,37 @@
-# Career Compass with GitHub Pages
+# Career Compass — multi-agent career coach (0.7.1)
 
-**Professor / independent evaluation:** Download and extract this repository, then follow [PROFESSOR-START-HERE.md](PROFESSOR-START-HERE.md) to run your own copy with your own API key. Windows setup and start launchers are included. Localhost always uses the local backend, without a shared-key fallback.
+A conversational career coach for college students, with resume/job evidence checks, interview drafting and practice, role exploration, and four-week plans.
 
-The public interface runs on GitHub Pages. AI requests go to a separate Node backend; GitHub Pages cannot execute the server or protect an API key in browser code. This repository includes both components and a deployment workflow. It does not include credentials or real student resumes.
+Public interface: https://anshulshahmis.github.io/MIS556Group3Assignment2/
 
-## Deployment order
+GitHub Pages serves the interface. The separate hosted AI backend is configured in dist/api-config.json. Its status endpoint reports the active architecture; verify MULTI-AGENT in the interface after deployment. An API key must never be added to GitHub or public assets.
 
-1. Use the public repository AnshulShahMIS/MIS556Group3Assignment2 and push this project to main. Do not upload a .env file. The public backend URL is configured in dist/api-config.json; a repository variable can override it.
-2. The primary AI backend is deployed at https://career-compass-student-coach.buzzychar19.chatgpt.site and has passed status, CORS preflight and a synthetic live AI request. For alternative hosting, deploy the Node backend from this repository to a Node web host. A Render Blueprint is included in render.yaml. It selects the free web service plan and starts node serve.mjs. Set OPENAI_API_KEY privately in the hosting service, never in public assets. The service must supply PORT and its public HTTPS URL (Render supplies RENDER_EXTERNAL_URL automatically). For another host set BACKEND_PUBLIC_URL explicitly.
-3. Set the backend ALLOWED_ORIGINS value to https://anshulshahmis.github.io. This is the origin, without the repository path. It authorizes browser requests from the Pages site. CORS is not authentication: non-browser callers can still reach a public API.
-4. Confirm the backend /api/status responds and test one real AI request. Copy the actual deployed backend URL; no backend URL is live merely because a configuration file exists.
-5. On GitHub open Settings → Secrets and variables → Actions → Variables. Optionally create CAREER_COMPASS_API_URL containing a replacement public HTTPS backend URL. The existing default is already configured. This value is public, not a secret. Do not put the OpenAI key here.
-6. Open Settings → Pages and choose GitHub Actions as the publishing source. Run the Publish Career Compass to GitHub Pages workflow. It tests the source, builds a static-only artifact, and deploys it.
-7. Use the URL returned by the successful Pages deployment. A proposed username.github.io path is not verification that publication succeeded. Test from another browser/device and verify AI MODE and a real answer.
+## Agent team and RAG
 
-## What is deployed to Pages
+A career coordinator selects resume, interview and career planning specialists based on the request and recent conversation. Each specialist runs its own model/tool loop, with separate instructions and restricted tools. The coordinator combines completed findings into one reply. Greetings can be answered directly.
 
-scripts/build-pages.mjs copies only dist assets to .pages and creates api-config.json containing the backend address. HTML, modules, CSS and PDF.js assets use relative paths so a repository subpath works. The workflow uploads .pages, not the repository root. Neither server code nor .env is part of that artifact. The workflow fails on an absent API URL and scans for project-key strings.
+Specialists retrieve the career guidance library before generation. Resume analysis must also complete compare_resume_job when both documents are present, or review_resume when only the resume is available. Source IDs are validated at both layers; claim support and personal facts still need review. Sources and actual agent activity appear in a collapsed panel below replies.
 
-## Local testing
+See [architecture and limits](docs/Multi-Agent-Architecture.md) and [the evidence-tool fix](evaluation/Resume-Evidence-Fix.md). The same configurable model, gpt-4.1-mini by default, runs the distinct agent roles.
 
-Requires Node.js 22 or later; no npm installation is needed for the Node app or tests.
+## Run your own copy with your own API key
 
-    node --test tests/*.test.mjs
-    node serve.mjs
+Install Node.js 22 or newer, download and fully extract the repository, then follow [PROFESSOR-START-HERE.md](PROFESSOR-START-HERE.md). Windows users can run Setup-API-Key.cmd, then Start-Career-Compass.cmd. Open http://127.0.0.1:4177 and keep the server window open. No npm install is needed for the local Node app.
 
-The local copy uses a root .env or the OPENAI_API_KEY environment variable. Run Setup-API-Key.cmd to configure an extracted local copy. A blank dist/api-config.json uses the same local server. For a separate local backend, edit only the public apiBaseUrl field; use localhost HTTP for development or HTTPS for a public server.
+On macOS/Linux, create a private .env beside serve.mjs with OPENAI_API_KEY and optionally OPENAI_MODEL, then run node serve.mjs. Never upload .env. Localhost always uses its own server configuration, without falling back to the public backend. An existing OPENAI_API_KEY environment variable takes priority over .env.
 
-## AI and privacy
+Without an API key, practice mode uses local templates and does not run AI agents. For a single-agent comparison, set CAREER_COMPASS_AGENT_MODE=single-agent in the server environment before starting.
 
-One model-driven agent uses guidance retrieval plus comparison, resume review, planning and interview tools. Student messages, supplied documents, recent history, optional goals and retrieved passages are transmitted through the backend to OpenAI. The key stays server-side. store:false is requested but does not promise zero provider retention. Use redacted or fictional data for demonstration. Source IDs are validated; claim support, citation relevance and personal facts still require review.
+## GitHub Pages publication
 
-The backend has a 90-second request timeout, six model decisions, a 1,500-token output limit per model call, two simultaneous requests, 20 attempts per minute and 60 attempts per UTC day per server process. These counters reset on process restart and are not a durable distributed quota or guaranteed dollar spending cap. Use provider billing controls as appropriate. Free hosts can sleep or impose availability limits; verify the live service before presentation. No student input is persisted by this app's backend.
+The Publish Career Compass to GitHub Pages workflow tests the project, builds a static-only artifact and deploys it on pushes to main. Set Pages to GitHub Actions. The public backend URL comes from dist/api-config.json or the optional CAREER_COMPASS_API_URL repository variable. The value is a public URL, never an API key. Pages cannot execute the Node backend or keep browser credentials secret.
 
-## Verification and readiness
+AI backend changes require a separate backend deployment. Uploading this repository alone does not update that service. A compatible Node backend is included for independent hosting; render.yaml is an optional example, not a claim that a Render service has been deployed.
 
-91 automated tests pass, including the existing career and adapter tests plus Pages artifact boundaries, relative assets, API configuration, CORS preflight and the shared process request limit. The existing live development checks were performed on version 0.4; this version's final public end-to-end test is pending actual deployment. Do not present the application as online until both deployments and a public AI request have been verified.
+## Testing and limits
 
-Real student usefulness testing, broader citation evaluation and the final five-minute presentation remain. The assignment permits selected career needs and does not require a multi-agent architecture.
+118 automated tests pass with node --test tests/*.test.mjs. Fictional development results are in evaluation/. Live scripts are opt-in paid API checks, not part of the offline suite. They do not establish real student usefulness or guaranteed factual accuracy. Student feedback and the final presentation remain.
 
-References: https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages and https://render.com/docs/web-services.
+Each request has at most 16 model calls, three sequential specialist consultations and a 120-second HTTP timeout. Specialist calls cap output at 1,200 tokens; coordinator calls at 1,500. Multiple agents can increase latency and input/output usage. Local and hosted request counters are process/isolate-local, reset on restart, and are not durable billing caps.
 
-## Conversation history in version 0.6
-
-New conversation preserves the previous chat. Reopen saved chats from the sidebar or Chats button on mobile. Messages, resume/job context, goals, added guidance, drafts and recent model conversation context are saved in this browser's local storage. Chats do not sync across devices. Up to 25 chats are retained; older chats are not silently deleted. Delete controls remove the selected chat locally. Storage failures are surfaced so the student can export the current conversation.
-
-Browser storage is not encrypted and can be accessed by people using the same browser profile. Use redacted inputs and delete chats on shared devices. Clearing site data removes saved chats. Conversations closed before this feature existed were not saved and cannot be recovered. Export an existing conversation before the first refresh that loads this update.
+Messages, supplied document text, recent history and relevant guidance are sent through the backend to OpenAI in AI mode. Credentials stay server-side. store:false is requested; this does not promise zero provider retention. Use redacted inputs. Up to 25 chats, including supplied context, remain in this browser until deleted; they do not sync across devices. No API keys or real student resumes are packaged in this repository.

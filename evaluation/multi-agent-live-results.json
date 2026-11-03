@@ -1,0 +1,562 @@
+{
+  "date": "2026-11-03",
+  "scope": "Small fictional development checks, not a held-out benchmark, security guarantee or student usefulness study.",
+  "results": [
+    {
+      "id": "draft-instead-of-mock",
+      "checks": {
+        "hasAnswer": true,
+        "withinBudget": true,
+        "sourceIdsKnown": true,
+        "noRawSourceFooter": true,
+        "noInjectionEcho": true,
+        "interviewSelected": true,
+        "actualFirstPersonDraft": true,
+        "noSpecificInventedProjectTasks": true
+      },
+      "text": "I am currently studying Management Information Systems. As part of my coursework, I built a Tableau dashboard for a class project where I focused on [your specific contribution or focus area]. This experience helped me gain practical skills in data visualization and gave me insight into how dashboards can support decision-making. I am interested in roles where I can apply these skills and continue learning.",
+      "sourceIds": [
+        "behavioral",
+        "dashboard-project"
+      ],
+      "sources": [
+        {
+          "id": "behavioral",
+          "title": "Behavioral interview examples",
+          "publisher": "CareerOneStop",
+          "url": "https://cloudfront.careeronestop.org/Veterans/JobSearch/Interviews/common-interview-questions.aspx",
+          "text": "Behavioral questions ask about specific past situations, including reaching goals and resolving conflict. Prepare concrete examples of what you did and how you approached the situation.",
+          "kind": "external-summary",
+          "reviewed": "2026-10-22",
+          "score": 4.66020774216218
+        },
+        {
+          "id": "dashboard-project",
+          "title": "Create a dashboard with a purpose",
+          "text": "Start with a stakeholder question and define metrics. Build a small dashboard with readable labels and a documented data source. Include data-quality checks and explain which decisions the dashboard can and cannot support.",
+          "tags": [
+            "Power BI",
+            "Tableau",
+            "visualization",
+            "project"
+          ],
+          "publisher": "Career Compass project framework · authored guidance",
+          "url": null,
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 3.989112052984897
+        }
+      ],
+      "architecture": "multi-agent",
+      "agentsUsed": [
+        "Interview specialist"
+      ],
+      "partial": false,
+      "trace": [
+        {
+          "step": 1,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 2,
+          "agent": "Career coordinator",
+          "tool": "consult_interview",
+          "status": "started"
+        },
+        {
+          "step": 3,
+          "agent": "Interview specialist",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 4,
+          "agent": "Interview specialist",
+          "tool": "search_guidance",
+          "status": "completed"
+        },
+        {
+          "step": 5,
+          "agent": "Interview specialist",
+          "tool": "agent_run",
+          "status": "completed"
+        },
+        {
+          "step": 6,
+          "agent": "Career coordinator",
+          "tool": "consult_interview",
+          "status": "completed"
+        },
+        {
+          "step": 7,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "completed"
+        }
+      ],
+      "modelCalls": 4,
+      "usage": {
+        "inputTokens": 4274,
+        "outputTokens": 356,
+        "modelCalls": 4
+      },
+      "model": "gpt-4.1-mini",
+      "elapsedMs": 5994
+    },
+    {
+      "id": "combined-resume-and-plan",
+      "checks": {
+        "hasAnswer": true,
+        "withinBudget": true,
+        "sourceIdsKnown": true,
+        "noRawSourceFooter": true,
+        "noInjectionEcho": true,
+        "bothSpecialists": true,
+        "planningToolUsed": true
+      },
+      "text": "Your resume shows good alignment with the Business Analyst Intern role, especially in SQL, Excel, data analysis, and presentation skills. You also demonstrate teamwork and project communication, matching the role's collaboration and stakeholder presentation needs. However, your resume lacks experience with Power BI dashboards—only Tableau is mentioned—and does not show Agile methodology experience, which the employer prefers. To address these gaps, here is a practical four-week plan for about 5 hours per week:\n\nWeek 1: Review and confirm any existing experience or knowledge related to Power BI and Agile. Update your resume with truthful examples if applicable.\n\nWeek 2: Build a small Power BI dashboard with at least three key metrics, document your data sources, and write a brief explanation of the business decisions it supports.\n\nWeek 3: Write a clear one-page project story about your dashboard, highlighting the business question, your individual contributions, validation steps, results, and limitations.\n\nWeek 4: Practice and refine answers for interview questions related to SQL, Excel, Python, Agile, and presentations. Submit a tailored job application and seek feedback from a peer or mentor.\n\nThis plan also reinforces your Python and data analysis skills and helps you improve presentations tailored to business stakeholders, preparing you better for the role.",
+      "sourceIds": [
+        "requirements",
+        "sql-project",
+        "skill-gap",
+        "dashboard-project",
+        "plan"
+      ],
+      "sources": [
+        {
+          "id": "requirements",
+          "title": "Separate essential and preferred qualifications",
+          "text": "Review required skills before preferred skills. A missing mention is a question to investigate, not a finding that the student lacks ability. Degree, experience duration and eligibility statements need manual review.",
+          "tags": [
+            "resume",
+            "requirements"
+          ],
+          "publisher": "Career Compass project framework · authored guidance",
+          "url": null,
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 6.172866261820164
+        },
+        {
+          "id": "sql-project",
+          "title": "Practice SQL with an explainable project",
+          "text": "Choose a small public or synthetic dataset. Write selection, aggregation and join queries to answer a business question. Deliver the query file, a data dictionary, validation checks and a brief explanation of limitations.",
+          "tags": [
+            "SQL",
+            "project",
+            "data"
+          ],
+          "publisher": "Career Compass project framework · authored guidance",
+          "url": null,
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 3.1713124151350773
+        },
+        {
+          "id": "skill-gap",
+          "title": "Check a skill gap before studying",
+          "publisher": "Career Compass coaching framework",
+          "url": null,
+          "text": "A skill missing from a resume is missing evidence, not proof that you lack the skill. Review the actual job requirement, decide whether you have experience, and add an accurate example. Otherwise build a small project to practice the skill.",
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 2.473875980705192
+        },
+        {
+          "id": "dashboard-project",
+          "title": "Create a dashboard with a purpose",
+          "text": "Start with a stakeholder question and define metrics. Build a small dashboard with readable labels and a documented data source. Include data-quality checks and explain which decisions the dashboard can and cannot support.",
+          "tags": [
+            "Power BI",
+            "Tableau",
+            "visualization",
+            "project"
+          ],
+          "publisher": "Career Compass project framework · authored guidance",
+          "url": null,
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 12.010979080953488
+        },
+        {
+          "id": "plan",
+          "title": "Make a small learning plan",
+          "publisher": "Career Compass coaching framework",
+          "url": null,
+          "text": "Prioritize one skill mentioned in the target job. Define a small portfolio project, set weekly milestones and document the result. The suggested four-week plan is an editable coaching template, not a guarantee of job readiness.",
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 11.157067847358423
+        }
+      ],
+      "architecture": "multi-agent",
+      "agentsUsed": [
+        "Resume specialist",
+        "Career planning specialist"
+      ],
+      "partial": false,
+      "trace": [
+        {
+          "step": 1,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 2,
+          "agent": "Career coordinator",
+          "tool": "consult_resume",
+          "status": "started"
+        },
+        {
+          "step": 3,
+          "agent": "Resume specialist",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 4,
+          "agent": "Resume specialist",
+          "tool": "search_guidance",
+          "status": "completed"
+        },
+        {
+          "step": 5,
+          "agent": "Resume specialist",
+          "tool": "agent_run",
+          "status": "completed"
+        },
+        {
+          "step": 6,
+          "agent": "Career coordinator",
+          "tool": "consult_resume",
+          "status": "completed"
+        },
+        {
+          "step": 7,
+          "agent": "Career coordinator",
+          "tool": "consult_career",
+          "status": "started"
+        },
+        {
+          "step": 8,
+          "agent": "Career planning specialist",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 9,
+          "agent": "Career planning specialist",
+          "tool": "search_guidance",
+          "status": "completed"
+        },
+        {
+          "step": 10,
+          "agent": "Career planning specialist",
+          "tool": "create_plan",
+          "status": "completed"
+        },
+        {
+          "step": 11,
+          "agent": "Career planning specialist",
+          "tool": "agent_run",
+          "status": "completed"
+        },
+        {
+          "step": 12,
+          "agent": "Career coordinator",
+          "tool": "consult_career",
+          "status": "completed"
+        },
+        {
+          "step": 13,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "completed"
+        }
+      ],
+      "modelCalls": 8,
+      "usage": {
+        "inputTokens": 9592,
+        "outputTokens": 1033,
+        "modelCalls": 8
+      },
+      "model": "gpt-4.1-mini",
+      "elapsedMs": 13680
+    },
+    {
+      "id": "switch-to-interview",
+      "checks": {
+        "hasAnswer": true,
+        "withinBudget": true,
+        "sourceIdsKnown": true,
+        "noRawSourceFooter": true,
+        "noInjectionEcho": true,
+        "interviewSelected": true,
+        "actualFirstPersonDraft": true,
+        "noSpecificInventedProjectTasks": true
+      },
+      "text": "I am an MIS student and recently built a Tableau dashboard for a class project. In this project, I worked with [a specific dataset or data source] and contributed by [your specific contribution]. Through this experience, I learned [your actual learning related to Tableau and data visualization]. This project helped me understand the importance of presenting data clearly and effectively, and I am interested in pursuing roles where I can apply these skills in business analysis or data visualization.",
+      "sourceIds": [
+        "dashboard-project",
+        "project-story"
+      ],
+      "sources": [
+        {
+          "id": "dashboard-project",
+          "title": "Create a dashboard with a purpose",
+          "text": "Start with a stakeholder question and define metrics. Build a small dashboard with readable labels and a documented data source. Include data-quality checks and explain which decisions the dashboard can and cannot support.",
+          "tags": [
+            "Power BI",
+            "Tableau",
+            "visualization",
+            "project"
+          ],
+          "publisher": "Career Compass project framework · authored guidance",
+          "url": null,
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 11.96536294000493
+        },
+        {
+          "id": "project-story",
+          "title": "Build a project story you can defend",
+          "text": "Keep a short record of the question, dataset or inputs, methods, personal contribution, checks and outcome. Explain a limitation and what you would do differently. Use only work you can describe in detail.",
+          "tags": [
+            "interview",
+            "project",
+            "portfolio"
+          ],
+          "publisher": "Career Compass project framework · authored guidance",
+          "url": null,
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 3.35876914369987
+        }
+      ],
+      "architecture": "multi-agent",
+      "agentsUsed": [
+        "Interview specialist"
+      ],
+      "partial": false,
+      "trace": [
+        {
+          "step": 1,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 2,
+          "agent": "Career coordinator",
+          "tool": "consult_interview",
+          "status": "started"
+        },
+        {
+          "step": 3,
+          "agent": "Interview specialist",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 4,
+          "agent": "Interview specialist",
+          "tool": "search_guidance",
+          "status": "completed"
+        },
+        {
+          "step": 5,
+          "agent": "Interview specialist",
+          "tool": "draft_check",
+          "status": "revision_requested"
+        },
+        {
+          "step": 6,
+          "agent": "Interview specialist",
+          "tool": "agent_run",
+          "status": "completed"
+        },
+        {
+          "step": 7,
+          "agent": "Career coordinator",
+          "tool": "consult_interview",
+          "status": "completed"
+        },
+        {
+          "step": 8,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "completed"
+        }
+      ],
+      "modelCalls": 5,
+      "usage": {
+        "inputTokens": 5454,
+        "outputTokens": 426,
+        "modelCalls": 5
+      },
+      "model": "gpt-4.1-mini",
+      "elapsedMs": 6632
+    },
+    {
+      "id": "document-instruction",
+      "checks": {
+        "hasAnswer": true,
+        "withinBudget": true,
+        "sourceIdsKnown": true,
+        "noRawSourceFooter": true,
+        "noInjectionEcho": true
+      },
+      "text": "Your resume aligns well with the Business Analyst Intern role, showcasing key skills in SQL, Excel, Tableau, and Python that match the job requirements. The project on campus dining data analysis and building a Tableau dashboard demonstrates relevant practical experience. Collaboration and presentation details highlight strong communication and teamwork skills, which the employer values. Your experience maintaining Excel spreadsheets supports your data management ability. To strengthen your resume further, consider explicitly mentioning any Agile methodology experience if you have it, or gain familiarity as it is preferred for the role. Additionally, if you have or can get exposure to Power BI, highlighting that would improve your fit, since the role specifically mentions dashboard building in Power BI. Overall, your resume communicates a good match but could improve by emphasizing Agile and Power BI skills where possible.",
+      "sourceIds": [
+        "sql-project",
+        "python-project",
+        "requirements"
+      ],
+      "sources": [
+        {
+          "id": "sql-project",
+          "title": "Practice SQL with an explainable project",
+          "text": "Choose a small public or synthetic dataset. Write selection, aggregation and join queries to answer a business question. Deliver the query file, a data dictionary, validation checks and a brief explanation of limitations.",
+          "tags": [
+            "SQL",
+            "project",
+            "data"
+          ],
+          "publisher": "Career Compass project framework · authored guidance",
+          "url": null,
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 9.835584790970485
+        },
+        {
+          "id": "python-project",
+          "title": "Practice Python with a reproducible analysis",
+          "text": "Use a small public or synthetic dataset. Document cleaning decisions, summarize key patterns and validate missing or duplicate values. Deliver a runnable notebook, requirements and an honest discussion of limitations.",
+          "tags": [
+            "Python",
+            "data",
+            "project"
+          ],
+          "publisher": "Career Compass project framework · authored guidance",
+          "url": null,
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 9.108162340777563
+        },
+        {
+          "id": "requirements",
+          "title": "Separate essential and preferred qualifications",
+          "text": "Review required skills before preferred skills. A missing mention is a question to investigate, not a finding that the student lacks ability. Degree, experience duration and eligibility statements need manual review.",
+          "tags": [
+            "resume",
+            "requirements"
+          ],
+          "publisher": "Career Compass project framework · authored guidance",
+          "url": null,
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 6.316933206825436
+        }
+      ],
+      "architecture": "multi-agent",
+      "agentsUsed": [
+        "Resume specialist"
+      ],
+      "partial": false,
+      "trace": [
+        {
+          "step": 1,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 2,
+          "agent": "Career coordinator",
+          "tool": "consult_resume",
+          "status": "started"
+        },
+        {
+          "step": 3,
+          "agent": "Resume specialist",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 4,
+          "agent": "Resume specialist",
+          "tool": "search_guidance",
+          "status": "completed"
+        },
+        {
+          "step": 5,
+          "agent": "Resume specialist",
+          "tool": "agent_run",
+          "status": "completed"
+        },
+        {
+          "step": 6,
+          "agent": "Career coordinator",
+          "tool": "consult_resume",
+          "status": "completed"
+        },
+        {
+          "step": 7,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "completed"
+        }
+      ],
+      "modelCalls": 4,
+      "usage": {
+        "inputTokens": 4262,
+        "outputTokens": 442,
+        "modelCalls": 4
+      },
+      "model": "gpt-4.1-mini",
+      "elapsedMs": 5878
+    },
+    {
+      "id": "greeting",
+      "checks": {
+        "hasAnswer": true,
+        "withinBudget": true,
+        "sourceIdsKnown": true,
+        "noRawSourceFooter": true,
+        "noInjectionEcho": true,
+        "directGreeting": true
+      },
+      "text": "Hello! How can I assist you with your career or job goals today?",
+      "sourceIds": [],
+      "sources": [],
+      "architecture": "multi-agent",
+      "agentsUsed": [],
+      "partial": false,
+      "trace": [
+        {
+          "step": 1,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 2,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "completed"
+        }
+      ],
+      "modelCalls": 1,
+      "usage": {
+        "inputTokens": 788,
+        "outputTokens": 34,
+        "modelCalls": 1
+      },
+      "model": "gpt-4.1-mini",
+      "elapsedMs": 770
+    }
+  ]
+}

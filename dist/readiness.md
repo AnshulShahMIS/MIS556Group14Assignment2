@@ -1,13 +1,9 @@
-# GitHub Pages deployment status
+# Career Compass readiness — November 3, 2026
 
-Prepared October 29, 2026. Version 0.5.0 separates the Pages interface from the hosted AI API.
+Version 0.7.1 contains the career coordinator plus resume, interview and career planning agents, guidance retrieval, document entry/upload, saved browser chats and bounded tool execution. Resume analysis requires its evidence tool. Duplicate manual-review requirements are removed.
 
-The AI backend is publicly deployed at https://career-compass-student-coach.buzzychar19.chatgpt.site. Its status endpoint, allowed-origin preflight and a synthetic real-model request returned successful responses. The key is stored as a runtime secret, not in this repository.
+118 automated checks pass. Fictional live development checks and browser checks are recorded in evaluation/. The multi-agent hosted backend has been deployed; public status, Pages-origin CORS and a fictional comparison have been verified. GitHub Pages publication follows a push to main; verify the workflow and public interface afterward.
 
-The repository is AnshulShahMIS/MIS556Group3Assignment2. GitHub Pages is configured to publish through GitHub Actions. The complete source, workflow, PDF.js files and tests are committed locally. The final push requires the user's normal GitHub authentication because the connector rejected writes and the session could not use Windows' credential helper.
+Remaining assignment work: student feedback, broader factual/citation review, a controlled comparison with the single-agent baseline, and the final five-minute presentation/submission. Earlier evaluation reports and presentation drafts are historical development materials. No student outcomes or guaranteed advice quality are claimed.
 
-86 automated project tests pass; two separate hosted API tests also passed. The final GitHub Pages deployment and a browser conversation on that public Pages URL remain to be verified after the push. No live Pages URL is claimed by this status document.
-
-Counters are per server process or Worker execution context, can reset and are not durable spending caps. Citation relevance and personal facts need review. Actual student usefulness testing and the final five-minute presentation remain pending.
-
-Earlier readiness and live evaluation files describe version 0.4 and are retained as development evidence. This file and the root README govern the current deployment status.
+For independent evaluation with your own key, follow PROFESSOR-START-HERE.md. Never upload .env or place a key in browser assets.

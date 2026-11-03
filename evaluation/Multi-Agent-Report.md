@@ -1,0 +1,13 @@
+# Multi-agent development verification — November 3, 2026
+
+111 automated tests pass, including the original 94 checks plus tests for independent specialist loops, scoped tools, delegation, citations, follow-up context, duplicate-call rejection, partial failures, call budgets, cancellation, the Responses protocol and targeted interview-draft checks.
+
+The final five-scenario live API run passed the scripted checks in multi-agent-live-results.json. All input scenarios are fictional. Interview drafts and topic changes invoked the interview specialist; a combined resume/comparison/plan request invoked both resume and career planning specialists and the planning tool. The document-instruction scenario did not echo the attack marker. A greeting used the coordinator only. This is a small development sample, not a security guarantee or held-out quality benchmark.
+
+The final run used 1–8 model calls per scenario and took approximately 0.8–13.7 seconds in this environment. These observations are not promised performance. Input token usage increases when context is replayed across loops. No controlled claim of improved quality, efficiency or student outcomes is made against the single-agent baseline.
+
+Earlier runs exposed unsupported project elaboration, advice instead of a requested draft, and a combined task being routed to only one specialist. Changes narrow career planning tools, clarify routing and introduce bounded draft-revision feedback. The draft checks catch selected regressions, not all unsupported statements or phrasing variations. Requests can still fail visibly when output checks do not pass within the call budget. One browser drafting attempt failed visibly before a subsequent successful run; no offline reply was substituted for the failed AI request.
+
+The browser check confirms the multi-agent badge, a first-person draft with placeholders, and actual coordinator/specialist/tool events under Sources and agent activity. The source footer remains absent from reply prose. A follow-up in the same browser chat switched from the interview specialist to the career planning specialist while retaining the MIS/Tableau context. Refresh restored both replies and their expanded activity panels. Other history behavior is covered by the retained regression suite.
+
+Remaining work: broader factual/citation review, student usefulness testing, repeated comparisons against the single-agent baseline, mobile/attachment regression checks for the new edition, presentation revision and a separately verified multi-agent deployment. The existing public single-agent app remains available.

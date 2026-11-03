@@ -10,7 +10,7 @@ No npm install, GitHub account, deployment, or editing of GitHub files is requir
 2. Right-click the project ZIP and choose **Extract All**. Open the extracted folder containing `serve.mjs`, `dist`, and the launchers. Do not run the launchers from inside the ZIP.
 3. Double-click **Setup-API-Key.cmd**. In the terminal prompt, paste your own OpenAI API key and press Enter. Input is hidden. The helper saves it to `.env` beside `serve.mjs` and checks authentication without printing the key. Do not edit the PowerShell script to insert a key.
 4. Double-click **Start-Career-Compass.cmd** and keep its terminal window open.
-5. After the listening message, open **http://127.0.0.1:4173**. Confirm **AI MODE** and send a short career question. Generation uses your API account and requires available API quota and model access. Authentication alone does not confirm generation works.
+5. After the listening message, open **http://127.0.0.1:4177**. Confirm **MULTI-AGENT** and send a short career question. Generation uses your API account and requires available API quota and model access. Authentication alone does not confirm generation works.
 6. Press Ctrl+C in the server window when finished.
 
 ## Manual setup (Windows, macOS, or Linux)
@@ -28,7 +28,7 @@ Open a terminal in that folder and run:
 node serve.mjs
 ```
 
-Then open http://127.0.0.1:4173. The local server runs without installing npm packages.
+Then open http://127.0.0.1:4177. The local server runs without installing npm packages.
 An existing OPENAI_API_KEY environment variable takes priority over `.env`; remove or update that variable if you want to use the file instead.
 
 ## Troubleshooting and privacy

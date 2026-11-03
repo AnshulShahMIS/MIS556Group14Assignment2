@@ -1,0 +1,220 @@
+{
+  "date": "2026-11-03",
+  "scope": "Two fictional development checks of mandatory tool execution, not factual-quality validation.",
+  "results": [
+    {
+      "id": "resume-and-job",
+      "requiredTool": "compare_resume_job",
+      "passed": true,
+      "text": "Your resume matches several key requirements of the Business Analyst Intern role well. You list SQL, Excel, and data analysis skills, supported by a project where you analyzed dining data and created a Tableau dashboard. Your communication and collaboration skills are shown through your project presentations and teamwork. You also mention Python, which is preferred, but without examples.\n\nHowever, there are uncertainties: your resume does not mention Power BI, which the job specifically requires for dashboard building, nor is there evidence of gathering business requirements or Agile experience. These could be skill gaps or just missing details. Adding examples related to these areas or clarifying your experience can strengthen your alignment with the role. Overall, your resume aligns with essential skills but leaves some preferred or required areas unconfirmed.",
+      "sourceIds": [
+        "resume-ai",
+        "requirements",
+        "skill-gap"
+      ],
+      "sources": [
+        {
+          "id": "resume-ai",
+          "title": "Use AI as a revision partner",
+          "publisher": "Harvard Mignone Center for Career Success",
+          "url": "https://careerservices.fas.harvard.edu/ai-resumes-and-cover-letters/",
+          "text": "AI can help identify experiences relevant to a job description and suggest language for resumes and cover letters. Review suggestions and keep your own truthful experience and voice.",
+          "kind": "external-summary",
+          "reviewed": "2026-10-22",
+          "score": 7.595359367162108
+        },
+        {
+          "id": "requirements",
+          "title": "Separate essential and preferred qualifications",
+          "text": "Review required skills before preferred skills. A missing mention is a question to investigate, not a finding that the student lacks ability. Degree, experience duration and eligibility statements need manual review.",
+          "tags": [
+            "resume",
+            "requirements"
+          ],
+          "publisher": "Career Compass project framework · authored guidance",
+          "url": null,
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 6.473006676119695
+        },
+        {
+          "id": "skill-gap",
+          "title": "Check a skill gap before studying",
+          "publisher": "Career Compass coaching framework",
+          "url": null,
+          "text": "A skill missing from a resume is missing evidence, not proof that you lack the skill. Review the actual job requirement, decide whether you have experience, and add an accurate example. Otherwise build a small project to practice the skill.",
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 6.125833608902175
+        }
+      ],
+      "architecture": "multi-agent",
+      "agentsUsed": [
+        "Resume specialist"
+      ],
+      "partial": false,
+      "trace": [
+        {
+          "step": 1,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 2,
+          "agent": "Career coordinator",
+          "tool": "consult_resume",
+          "status": "started"
+        },
+        {
+          "step": 3,
+          "agent": "Resume specialist",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 4,
+          "agent": "Resume specialist",
+          "tool": "search_guidance",
+          "status": "completed"
+        },
+        {
+          "step": 5,
+          "agent": "Resume specialist",
+          "tool": "compare_resume_job",
+          "status": "completed"
+        },
+        {
+          "step": 6,
+          "agent": "Resume specialist",
+          "tool": "agent_run",
+          "status": "completed"
+        },
+        {
+          "step": 7,
+          "agent": "Career coordinator",
+          "tool": "consult_resume",
+          "status": "completed"
+        },
+        {
+          "step": 8,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "completed"
+        }
+      ],
+      "modelCalls": 5,
+      "usage": {
+        "inputTokens": 7001,
+        "outputTokens": 436,
+        "modelCalls": 5
+      },
+      "model": "gpt-4.1-mini",
+      "elapsedMs": 7252
+    },
+    {
+      "id": "resume-only",
+      "requiredTool": "review_resume",
+      "passed": true,
+      "text": "Your resume includes relevant skills, projects, and experience, but can be improved by clarifying your individual contributions and the impact or scope of each. For example, specify what tasks you personally handled in your campus dining data analysis and Tableau dashboard project, and describe any measurable outcomes or lessons learned. Similarly, detail your role maintaining Excel spreadsheets for event registrations and what benefits your work provided. When mentioning collaboration and presentations, explain your specific contributions and the audience impact. These truthful clarifications will enhance clarity, impact, and completeness without inventing new facts.",
+      "sourceIds": [
+        "no-experience",
+        "requirements"
+      ],
+      "sources": [
+        {
+          "id": "no-experience",
+          "title": "Start with academic evidence",
+          "text": "When employment experience is limited, use relevant coursework, volunteering, campus leadership or personal projects. Identify your own contribution and label the experience accurately. Do not rename academic work as employment.",
+          "tags": [
+            "student",
+            "resume",
+            "experience"
+          ],
+          "publisher": "Career Compass project framework · authored guidance",
+          "url": null,
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 7.037020595254143
+        },
+        {
+          "id": "requirements",
+          "title": "Separate essential and preferred qualifications",
+          "text": "Review required skills before preferred skills. A missing mention is a question to investigate, not a finding that the student lacks ability. Degree, experience duration and eligibility statements need manual review.",
+          "tags": [
+            "resume",
+            "requirements"
+          ],
+          "publisher": "Career Compass project framework · authored guidance",
+          "url": null,
+          "kind": "framework",
+          "reviewed": "2026-10-22",
+          "score": 4.570487812222451
+        }
+      ],
+      "architecture": "multi-agent",
+      "agentsUsed": [
+        "Resume specialist"
+      ],
+      "partial": false,
+      "trace": [
+        {
+          "step": 1,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 2,
+          "agent": "Career coordinator",
+          "tool": "consult_resume",
+          "status": "started"
+        },
+        {
+          "step": 3,
+          "agent": "Resume specialist",
+          "tool": "agent_run",
+          "status": "started"
+        },
+        {
+          "step": 4,
+          "agent": "Resume specialist",
+          "tool": "search_guidance",
+          "status": "completed"
+        },
+        {
+          "step": 5,
+          "agent": "Resume specialist",
+          "tool": "review_resume",
+          "status": "completed"
+        },
+        {
+          "step": 6,
+          "agent": "Resume specialist",
+          "tool": "agent_run",
+          "status": "completed"
+        },
+        {
+          "step": 7,
+          "agent": "Career coordinator",
+          "tool": "consult_resume",
+          "status": "completed"
+        },
+        {
+          "step": 8,
+          "agent": "Career coordinator",
+          "tool": "agent_run",
+          "status": "completed"
+        }
+      ],
+      "modelCalls": 5,
+      "usage": {
+        "inputTokens": 5004,
+        "outputTokens": 334,
+        "modelCalls": 5
+      },
+      "model": "gpt-4.1-mini",
+      "elapsedMs": 6601
+    }
+  ]
+}
