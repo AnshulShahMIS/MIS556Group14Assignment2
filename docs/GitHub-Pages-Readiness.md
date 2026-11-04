@@ -4,7 +4,7 @@ Prepared October 29, 2026. Version 0.5.0 separates the Pages interface from the 
 
 The AI backend is publicly deployed at https://career-compass-student-coach.buzzychar19.chatgpt.site. Its status endpoint, allowed-origin preflight and a synthetic real-model request returned successful responses. The key is stored as a runtime secret, not in this repository.
 
-The repository is AnshulShahMIS/MIS556Group3Assignment2. GitHub Pages is configured to publish through GitHub Actions. The complete source, workflow, PDF.js files and tests are committed locally. The final push requires the user's normal GitHub authentication because the connector rejected writes and the session could not use Windows' credential helper.
+The repository is AnshulShahMIS/MIS556Group14Assignment2. GitHub Pages is configured to publish through GitHub Actions. The complete source, workflow, PDF.js files and tests are committed locally. The final push requires the user's normal GitHub authentication because the connector rejected writes and the session could not use Windows' credential helper.
 
 86 automated project tests pass; two separate hosted API tests also passed. The final GitHub Pages deployment and a browser conversation on that public Pages URL remain to be verified after the push. No live Pages URL is claimed by this status document.
 
