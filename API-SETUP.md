@@ -2,7 +2,7 @@
 
 ## Public website
 
-Open https://anshulshahmis.github.io/MIS556Group3Assignment2/, choose API key, enter your OpenAI API key in the password field, and choose Use key for this tab. Send a career question to check authentication, model access and quota. Use Clear my key when finished. A refresh or closed tab requires re-entry.
+Open https://anshulshahmis.github.io/MIS556Group14Assignment2/, choose API key, enter your OpenAI API key in the password field, and choose Use key for this tab. Send a career question to check authentication, model access and quota. Use Clear my key when finished. A refresh or closed tab requires re-entry.
 
 The app sends your credential over HTTPS through the configured Career Compass backend to OpenAI for each AI request. Only use this feature if you trust the site and its hosting. Your account pays for the model calls. The app does not put this key in GitHub files, chat history, exports or browser storage. Public requests without a key cannot use an owner-key fallback; practice templates remain available.
 
