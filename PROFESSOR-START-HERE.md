@@ -2,7 +2,7 @@
 
 ## Online — no download needed
 
-1. Open https://anshulshahmis.github.io/MIS556Group3Assignment2/.
+1. Open https://anshulshahmis.github.io/MIS556Group14Assignment2/.
 2. Select API key in the header or Use AI with my key on the welcome screen.
 3. Enter your own OpenAI API key in the password field and select Use key for this tab. Do not paste a key into the chat or GitHub files.
 4. Send a career question. Authentication, model permissions and quota are checked when the first request runs.
