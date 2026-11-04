@@ -2,7 +2,7 @@
 
 A conversational career coach for college students, with resume/job evidence checks, interview drafting and practice, role exploration, and four-week plans.
 
-Public interface: https://anshulshahmis.github.io/MIS556Group3Assignment2/
+Public interface: https://anshulshahmis.github.io/MIS556Group14Assignment2/
 
 GitHub Pages serves the interface. The separate hosted AI backend is configured in dist/api-config.json. Its status endpoint reports the active architecture; verify MULTI-AGENT in the interface after deployment. An API key must never be added to GitHub or public assets.
 
