@@ -1,4 +1,4 @@
-# Career Compass — multi-agent career coach (0.8.0)
+# Career Compass — multi-agent career coach (0.9.0)
 
 A conversational career coach for college students, with resume/job evidence checks, interview drafting and practice, role exploration, and four-week plans.
 
@@ -38,8 +38,18 @@ AI backend changes require a separate backend deployment. Uploading this reposit
 
 ## Testing and limits
 
-122 automated tests pass with node --test tests/*.test.mjs. Fictional development results are in evaluation/. Live scripts are opt-in paid API checks, not part of the offline suite. They do not establish real student usefulness or guaranteed factual accuracy. Student feedback and the final presentation remain.
+136 automated tests pass with node --test tests/*.test.mjs. Fictional development results are in evaluation/. Live scripts are opt-in paid API checks, not part of the offline suite. They do not establish real student usefulness or guaranteed factual accuracy. Student feedback and the final presentation remain.
 
 Each request has at most 16 model calls, three sequential specialist consultations and a 120-second HTTP timeout. Specialist calls cap output at 1,200 tokens; coordinator calls at 1,500. Multiple agents can increase latency and input/output usage. Local and hosted request counters are process/isolate-local, reset on restart, and are not durable billing caps.
 
 Messages, supplied document text, recent history and relevant guidance are sent through the backend to OpenAI in AI mode. Visitor credentials are entered in the password field, held in tab memory and forwarded to the backend for each AI request. store:false is requested; this does not promise zero provider retention. Use redacted inputs. Up to 25 chats, including supplied context, remain in this browser until deleted; they do not sync across devices. No API keys or real student resumes are packaged in this repository.
+
+## Find actual job postings
+
+In AI mode ask, for example: "Find cybersecurity analyst jobs in Phoenix and remote US roles." The planning specialist uses live OpenAI web search and checks individual employer/ATS posting pages before returning title, employer, location, available date/salary and application links. Missing details are labelled Not listed. Indexed postings can be stale and matching is imperfect; confirm availability and requirements on the employer page.
+
+Search uses two model calls within the existing request budget, plus OpenAI web-search charges on your own API account. Search keywords are sent to OpenAI web search; the complete resume is not used as the search query. The public app still requires your own key. Supported-source coverage and checks are documented in [evaluation/Live-Job-Search.md](evaluation/Live-Job-Search.md).
+
+## Career workspace tabs
+
+Chat, Career Plan, Recommended Jobs and Applications keep generated work available to revisit. Plans save versions and weekly completion. Actual job-search results can be tracked as To apply, In progress or Applied, with deadlines and notes. Discuss with coach reopens the original chat. Older plans can be saved explicitly from the latest chat reply. The tracker never submits applications. Everything is saved in the same browser; there is no account sync.

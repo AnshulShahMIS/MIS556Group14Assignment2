@@ -16,6 +16,11 @@ function scripted(ids,{action,inspect}={}){
   return final(state);
  };
 }
+test('career plan replies expose a separate saved artifact with generated weekly steps',async()=>{
+ const result=await runMultiAgent({message:'Create a four-week career plan.',context,decide:scripted(['career'],{action:'create_plan'})});
+ assert.equal(result.careerPlan.text,result.text);assert.equal(result.careerPlan.weeks.length,4);assert.ok(result.careerPlan.createdAt);
+ const greeting=await runMultiAgent({message:'hello',decide:async()=>conversation('Hello')});assert.equal(greeting.careerPlan,undefined);
+});
 test('independent specialist loops retrieve before coordinator synthesis',async()=>{
  const result=await runMultiAgent({message:'Review my resume and help me plan my next step.',context,decide:scripted(['resume','career'])});
  assert.deepEqual(result.agentsUsed,['Resume specialist','Career planning specialist']);assert.equal(result.modelCalls,8);
