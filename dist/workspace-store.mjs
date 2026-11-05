@@ -23,6 +23,13 @@ export function createWorkspaceStore(storage,{now=()=>new Date().toISOString()}=
    }
   });},
   updateJob(id,patch){return change(s=>{const job=s.jobs.find(j=>j.id===id);if(!job)throw Error('Job not found.');if(patch.status!==undefined){if(!applicationStatuses.includes(patch.status))throw Error('Choose a valid application status.');job.status=patch.status;job.tracked=true;if(patch.status==='Applied'&&!job.appliedAt)job.appliedAt=now().slice(0,10);if(patch.status!=='Applied')job.appliedAt='';}if(patch.tracked!==undefined)job.tracked=!!patch.tracked;if(patch.notes!==undefined)job.notes=text(patch.notes,4000);if(patch.deadline!==undefined)job.deadline=/^\d{4}-\d{2}-\d{2}$/.test(patch.deadline)?patch.deadline:'';});},
+  addApplication(values,chatId){return change(s=>{
+   const title=text(values.title,200).trim(),url=safePostingLink(String(values.url||'').trim()),status=values.status||'To apply';
+   if(!title)throw Error('Enter a job title.');if(!url)throw Error('Enter a valid HTTPS posting link.');if(!applicationStatuses.includes(status))throw Error('Choose a valid application status.');
+   let job=s.jobs.find(j=>j.url===url);if(job?.tracked)throw Error('This posting is already in your Applications tab. Update its existing card instead.');
+   if(!job){if(s.jobs.length>=150)throw Error('Your tracker has 150 jobs. Remove an old job to save another.');job={id:crypto.randomUUID(),url,salary:'',posted:'',query:'Added manually',seenAt:now()};s.jobs.unshift(job);}
+   Object.assign(job,{title,employer:text(values.employer,200).trim()||job.employer||'',location:text(values.location,240).trim()||job.location||'',chatId:text(chatId,100),tracked:true,status,notes:text(values.notes,4000),deadline:/^\d{4}-\d{2}-\d{2}$/.test(values.deadline||'')?values.deadline:'',appliedAt:status==='Applied'?now().slice(0,10):''});
+  });},
   saveCompany(research,chatId,{favorite}={}){return change(s=>{
    const company=text(research.company,160).trim();if(!company||/\bsk-[\w-]+/.test(company))throw Error('Enter a public company name.');const key=companyKey(company);let item=s.companies.find(c=>c.key===key);
    if(!item){if(s.companies.length>=100)throw Error('You have 100 saved companies. Remove one before adding another.');item={id:crypto.randomUUID(),key,company,role:'',text:'',sources:[],checkedAt:'',chatId:'',favorite:false,notes:'',addedAt:now()};s.companies.unshift(item);}

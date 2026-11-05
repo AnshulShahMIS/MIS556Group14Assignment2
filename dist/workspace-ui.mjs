@@ -1,4 +1,4 @@
-import {createWorkspaceStore,workspaceKey,applicationStatuses,safePostingLink,companyKey} from './workspace-store.mjs';
+import {createWorkspaceStore,workspaceKey,applicationStatuses,safePostingLink,companyKey} from './workspace-store.mjs?v=applications-2';
 import {appendJobLinks} from './job-links.mjs';
 export function mountWorkspace({storage=localStorage,getChatId,getLastReply,isAIEnabled=()=>true,isBusy=()=>false,openChat,ask,notify}){
  const store=createWorkspaceStore(storage),$=s=>document.querySelector(s);
@@ -6,7 +6,7 @@ export function mountWorkspace({storage=localStorage,getChatId,getLastReply,isAI
  const button=(text,fn,cls='chip')=>{const b=el('button',text,cls);b.type='button';b.addEventListener('click',fn);return b;};
  const run=fn=>{try{fn();render();}catch(e){notify(e.message||'Could not save this workspace.');}};
  const nav=el('nav',undefined,'workspace-tabs');nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Career workspace');
- const panels=new Map();let selected='chat',researchPending='',researchMessage='';
+ const panels=new Map();let selected='chat',researchPending='',researchMessage='',manualFormOpen=false,manualDraft={};
  const titles={chat:'Chat',plan:'Career Plan',jobs:'Recommended Jobs',applications:'Applications',employers:'Employer Research',favorites:'Favorite Companies'};
  for(const [id,title]of Object.entries(titles)){
   const tab=button(title,()=>show(id),'workspace-tab');tab.id='tab-'+id;tab.dataset.tab=id;tab.setAttribute('role','tab');tab.setAttribute('aria-controls',id==='chat'?'chat-scroll':'workspace-'+id);nav.append(tab);
@@ -30,7 +30,7 @@ export function mountWorkspace({storage=localStorage,getChatId,getLastReply,isAI
  }
  function postingCard(job,tracker=false){
   const card=el('article',undefined,'workspace-card');card.append(el('h2',job.title||'Job posting'),el('p',[job.employer,job.location].filter(Boolean).join(' · '),'job-company'));
-  if(job.salary)card.append(el('p','Salary: '+job.salary));if(job.posted)card.append(el('p','Posted: '+job.posted));card.append(el('small','Retrieved '+new Date(job.seenAt).toLocaleDateString()+' · Confirm availability on the employer page.'));
+  if(job.salary)card.append(el('p','Salary: '+job.salary));if(job.posted)card.append(el('p','Posted: '+job.posted));card.append(el('small',(job.query==='Added manually'?'Added manually ':'Retrieved ')+new Date(job.seenAt).toLocaleDateString()+' · Confirm availability on the employer page.'));
   const actions=el('div',undefined,'workspace-actions');if(safePostingLink(job.url)){const link=el('a','View posting / apply ↗','chip');link.href=job.url;link.target='_blank';link.rel='noopener noreferrer';actions.append(link);}
   actions.append(button('Discuss with coach',()=>discuss(job,'Help me assess this job against my experience and prepare the next application step.')));
   if(job.employer){actions.append(button('Research employer',()=>{show('employers');startResearch(job.employer,job.title);}));const saved=store.read().companies.find(c=>c.key===companyKey(job.employer));actions.append(button(saved?.favorite?'Company favorited ★':'Favorite company ☆',()=>run(()=>store.saveCompany({company:job.employer,role:job.title},getChatId(),{favorite:true}))));}
@@ -46,9 +46,19 @@ export function mountWorkspace({storage=localStorage,getChatId,getLastReply,isAI
  }
  function applications(state){const p=panels.get('applications');heading(p,'Your applications','Track your own progress. Opening a posting does not submit an application; mark Applied only after you have submitted it yourself.');
   const tracked=state.jobs.filter(j=>j.tracked),counts=el('div',undefined,'application-counts');for(const status of applicationStatuses)counts.append(el('span',status+': '+tracked.filter(j=>j.status===status).length));p.append(counts);
-  p.append(button('Add a job manually',()=>{const title=prompt('Job title');if(!title?.trim())return;const employer=prompt('Employer (optional)')||'',url=prompt('HTTPS link to the posting');if(!safePostingLink(url)){notify('Enter a valid HTTPS posting link.');return;}run(()=>{const next=store.addJobs([{title,employer,url}],getChatId(),'Added manually');const saved=next.jobs.find(j=>j.url===safePostingLink(url));store.updateJob(saved.id,{tracked:true});});}));
+  const add=button(manualFormOpen?'Hide application form':'Add a job manually',()=>{manualFormOpen=!manualFormOpen;render();if(manualFormOpen)$('#manual-job-title')?.focus();});add.setAttribute('aria-expanded',String(manualFormOpen));add.setAttribute('aria-controls','manual-application-form');p.append(add);
+  if(manualFormOpen)p.append(manualApplicationForm());
   if(!tracked.length)return empty(p,'No applications tracked yet. Save a recommended job or add one manually.');
   for(const status of applicationStatuses){const group=el('section',undefined,'application-group');group.append(el('h2',status==='In progress'?'In progress · finish these applications':status));for(const job of tracked.filter(j=>j.status===status))group.append(postingCard(job,true));if(!tracked.some(j=>j.status===status))group.append(el('p','No jobs in this stage.','small-note'));p.append(group);}
+ }
+ function manualApplicationForm(){
+  const form=el('form',undefined,'workspace-card manual-application-form');form.id='manual-application-form';form.noValidate=true;form.setAttribute('aria-labelledby','manual-application-title');const title=el('h2','Add an application');title.id='manual-application-title';form.append(title,el('p','Enter the details below to keep this opportunity in your tracker.','workspace-intro'));
+  const grid=el('div',undefined,'manual-application-grid'),fields={};
+  const field=(name,label,type='text',required=false,max=240)=>{const box=el('label',undefined,name==='url'||name==='notes'?'manual-field-wide':''),caption=el('span',label),input=el(type==='textarea'?'textarea':type==='select'?'select':'input');input.id='manual-job-'+name;input.name=name;input.setAttribute('aria-describedby','manual-application-error');if(type==='select'){for(const status of applicationStatuses){const option=el('option',status);option.value=status;input.append(option);}}else if(type==='textarea'){input.rows=3;input.maxLength=max;}else {input.type=type;input.maxLength=max;}input.required=required;input.value=manualDraft[name]|| (name==='status'?'To apply':'');input.addEventListener('input',()=>{manualDraft[name]=input.value;error.textContent='';input.removeAttribute('aria-invalid');});box.append(caption,input);grid.append(box);fields[name]=input;return input;};
+  field('title','Job title *','text',true,200).placeholder='e.g. Business Analyst';field('employer','Company (optional)','text',false,200).placeholder='Company name';field('location','Location (optional)').placeholder='e.g. Phoenix, AZ or Remote';field('status','Application status','select');field('url','Posting link *','url',true,2000).placeholder='https://company.com/careers/job';field('deadline','Application deadline (optional)','date');field('notes','Notes / steps still needed','textarea',false,4000).placeholder='Tailor resume, finish cover letter, prepare answers…';form.append(grid);
+  const error=el('p','', 'manual-form-error');error.id='manual-application-error';error.setAttribute('role','alert');form.append(error);const actions=el('div',undefined,'workspace-actions'),save=el('button','Save application','manual-submit');save.type='submit';actions.append(save,button('Cancel',()=>{manualFormOpen=false;manualDraft={};render();}));form.append(actions);
+  form.addEventListener('submit',event=>{event.preventDefault();error.textContent='';const fail=(name,message)=>{error.textContent=message;fields[name].setAttribute('aria-invalid','true');fields[name].focus();};if(!fields.title.value.trim())return fail('title','Enter a job title.');if(!safePostingLink(fields.url.value.trim()))return fail('url','Enter a valid posting link beginning with https://.');try{store.addApplication(Object.fromEntries(Object.entries(fields).map(([name,input])=>[name,input.value])),getChatId());manualFormOpen=false;manualDraft={};render();notify('Application saved to your tracker.');}catch(e){error.textContent=e.message||'Could not save this application. Your entries are still here.';}});
+  return form;
  }
  function startResearch(company,role=''){
   if(isBusy()){notify('Wait for the current response before starting research.');return;}

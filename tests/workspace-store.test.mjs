@@ -1,6 +1,12 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {createWorkspaceStore,workspaceKey} from '../dist/workspace-store.mjs';
 const memory=()=>{const m=new Map();return {getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,v)};};
+test('manual application form saves all fields in one operation and sets applied date',()=>{
+ const store=createWorkspaceStore(memory(),{now:()=> '2026-11-05T12:00:00Z'});store.addApplication({title:'Business Analyst',employer:'Example',location:'Remote',url:'https://example.com/jobs/123',status:'Applied',deadline:'2026-11-20',notes:'Submitted resume and cover letter.'},'chat-a');const job=store.read().jobs[0];assert.equal(job.title,'Business Analyst');assert.equal(job.employer,'Example');assert.equal(job.location,'Remote');assert.equal(job.tracked,true);assert.equal(job.status,'Applied');assert.equal(job.appliedAt,'2026-11-05');assert.equal(job.notes,'Submitted resume and cover letter.');assert.equal(job.deadline,'2026-11-20');
+});
+test('invalid or duplicate manual applications preserve existing saved progress',()=>{
+ const storage=memory(),store=createWorkspaceStore(storage);store.addApplication({title:'Analyst',url:'https://example.com/jobs/1',status:'In progress',notes:'Keep these notes'},'a');const original=storage.getItem(workspaceKey);for(const values of [{title:'',url:'https://example.com/2'},{title:'Unsafe',url:'javascript:alert(1)'},{title:'Duplicate',url:'https://example.com/jobs/1',status:'Applied'}])assert.throws(()=>store.addApplication(values,'b'));assert.equal(storage.getItem(workspaceKey),original);
+});
 test('existing workspaces gain companies without losing chats, plans or applications',()=>{
  const storage=memory();storage.setItem(workspaceKey,JSON.stringify({version:1,plans:[{id:'plan'}],jobs:[{id:'job'}]}));const store=createWorkspaceStore(storage);store.saveCompany({company:'Microsoft'},'chat-a',{favorite:true});const saved=store.read();assert.equal(saved.plans[0].id,'plan');assert.equal(saved.jobs[0].id,'job');assert.equal(saved.companies.length,1);assert.equal(saved.companies[0].favorite,true);
 });
