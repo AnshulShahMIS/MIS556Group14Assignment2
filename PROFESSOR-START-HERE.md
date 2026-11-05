@@ -1,58 +1,54 @@
-# Use Career Compass with your own API key
+# Run Stride with your own .env file
 
-## Online — no download needed
+This download contains Stride's interface, multi-agent backend and career tools. No API key is included. Add your own OpenAI key to a private local `.env` file; you do not need to enter it in the chat or the website's API-key dialog.
 
-1. Open https://anshulshahmis.github.io/MIS556Group14Assignment2/.
-2. Select API key in the header or Use AI with my key on the welcome screen.
-3. Enter your own OpenAI API key in the password field and select Use key for this tab. Do not paste a key into the chat or GitHub files.
-4. Send a career question. Authentication, model permissions and quota are checked when the first request runs.
-5. Use Clear my key in AI settings when finished. Refreshing or closing the tab also removes it from application memory.
+## Quick start
 
-Your key goes over HTTPS through the configured Career Compass AI backend to OpenAI for requests billed to your API account. The app does not save it in chat history, exports, browser storage or application logs. You must trust the app and its hosting. No shared owner key is used for public requests.
+1. Install **Node.js 22 or newer**. Check with `node --version` in a new terminal.
+2. Download the complete project and **extract the ZIP**. Open the folder containing `serve.mjs`, `dist`, and `.env.example`. Do not run the launcher from inside the ZIP.
+3. Copy **`.env.example`** and name the copy exactly **`.env`** beside `serve.mjs`. On Windows, turn on **View → Show → File name extensions** in File Explorer so the file does not become `.env.txt`.
+4. Open `.env` in a text editor, fill in your own key, and save:
 
-## Optional downloaded copy
+   ```env
+   OPENAI_API_KEY=your_own_OpenAI_API_key_here
+   OPENAI_MODEL=gpt-4.1-mini
+   ```
 
-# Run Career Compass with your own API key
+5. On Windows, double-click **Start-Stride.cmd**. On Windows, macOS or Linux, you can instead open a terminal in that folder and run:
 
-This download contains the complete app and local server. No API key is included.
-When opened at localhost, the app uses this computer's server and API configuration.
-No npm install, GitHub account, deployment, or editing of GitHub files is required.
+   ```sh
+   node serve.mjs
+   ```
 
-## Windows quick start
+6. Open **http://127.0.0.1:4177**. Confirm **MULTI-AGENT** and **Local AI mode**, then ask a short career question. The local server supplies the key; there is no need to enter it again on the page.
 
-1. Install Node.js 22 or newer if it is not already installed. Check with `node --version` in a new terminal.
-2. Right-click the project ZIP and choose **Extract All**. Open the extracted folder containing `serve.mjs`, `dist`, and the launchers. Do not run the launchers from inside the ZIP.
-3. Double-click **Setup-API-Key.cmd**. In the terminal prompt, paste your own OpenAI API key and press Enter. Input is hidden. The helper saves it to `.env` beside `serve.mjs` and checks authentication without printing the key. Do not edit the PowerShell script to insert a key.
-4. Double-click **Start-Career-Compass.cmd** and keep its terminal window open.
-5. After the listening message, open **http://127.0.0.1:4177**. Confirm **MULTI-AGENT** and send a short career question. Generation uses your API account and requires available API quota and model access. Authentication alone does not confirm generation works.
-6. Press Ctrl+C in the server window when finished.
+Keep the terminal open while using Stride. Press **Ctrl+C** to stop it. Restart it after editing `.env`. No `npm install`, GitHub account or deployment is required to run this download.
 
-## Manual setup (Windows, macOS, or Linux)
-
-Create a plain-text file named exactly `.env` (not `.env.txt`) beside `serve.mjs`:
-
-```env
-OPENAI_API_KEY=replace_with_your_own_key
-OPENAI_MODEL=gpt-4.1-mini
+```text
+Stride/
+  .env              ← your private file; never share it
+  .env.example      ← blank, safe-to-share template
+  serve.mjs
+  Start-Stride.cmd
+  dist/
 ```
 
-Open a terminal in that folder and run:
+## What the key enables
 
-```sh
-node serve.mjs
-```
+Your key runs the coordinator, resume, interview and career-planning specialists, plus live job search and employer research. Usage is billed to your own OpenAI API account. Model access, available API quota and internet access are required. A ChatGPT subscription is separate from API access.
 
-Then open http://127.0.0.1:4177. The local server runs without installing npm packages.
-An existing OPENAI_API_KEY environment variable takes priority over `.env`; remove or update that variable if you want to use the file instead.
+The server reads `.env` outside the public `dist` folder. It does not send the key to the browser or include it in chats or exports. Messages, supplied document text and recent context are sent to OpenAI for AI replies. Public role/company keywords are used for web research. Use fictional or redacted inputs for evaluation.
 
-## Troubleshooting and privacy
+## Troubleshooting
 
-- **Setup opens as text:** Run `Setup-API-Key.cmd`, not the `.ps1` file.
-- **Node is not recognized:** Install Node.js 22 or newer, then open a new terminal.
-- **Practice mode:** Check `.env` is beside `serve.mjs` and restart the server after changing the key. There is no fallback to the shared public AI backend on localhost.
-- **Port already in use:** Close an older Career Compass server before starting this copy. An existing server at that address may use different configuration.
-- **AI error:** Read the error in the chat; confirm your API account has quota and access to the configured model.
-- Keep `.env` private. It is ignored by Git, but manually zipping the folder can still include it. Do not upload or email the folder after adding your key.
-- The local backend sends supplied messages, document text, context, and retrieved guidance to OpenAI for AI replies. Use fictional or redacted inputs for evaluation.
-- Chats and document context remain in this browser's storage until deleted. They do not sync between computers. Delete demonstration chats on shared devices.
-- The public GitHub Pages interface also supports per-tab visitor keys. The setup launchers configure only the downloaded copy.
+- **Practice mode:** Check the filename is `.env`, it is beside `serve.mjs`, and `OPENAI_API_KEY` is filled in. Restart the server.
+- **Different key used:** An existing `OPENAI_API_KEY` system environment variable takes priority over `.env`. Remove or update it before restarting. A key entered in the website's optional API-key dialog overrides the local key until cleared or refreshed.
+- **Node not recognized:** Install Node.js 22+, then open a new terminal.
+- **Port in use:** Stop an older Stride server before starting this copy; it may have loaded different settings.
+- **AI request fails:** Check the displayed error, API quota/billing and model permissions.
+
+Chats, plans, companies and application notes remain in the same browser until removed. `.env` is ignored by Git, but manually zipping the configured folder can still include it. Do not share your configured `.env` or any ZIP containing it.
+
+## Public website
+
+The public interface is https://anshulshahmis.github.io/MIS556Group14Assignment2/. **GitHub Pages cannot read a .env file from your computer.** For file-based configuration, use the **localhost** address above. The public website separately supports optional per-tab visitor keys.

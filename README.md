@@ -1,5 +1,9 @@
 # Stride — multi-agent career coach (0.10.0)
 
+## Professor setup: private .env file
+
+Download and extract this project, copy `.env.example` to `.env` beside `serve.mjs`, and add your own OpenAI key. Run `Start-Stride.cmd` or `node serve.mjs`, then open **http://127.0.0.1:4177**. No browser key entry or npm installation is needed. Full instructions: [PROFESSOR-START-HERE.md](PROFESSOR-START-HERE.md). Keep `.env` private; GitHub Pages cannot read a file on your computer.
+
 A conversational career coach for college students, with resume/job evidence checks, interview drafting and practice, role exploration, and four-week plans.
 
 Public interface: https://anshulshahmis.github.io/MIS556Group14Assignment2/
