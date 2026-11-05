@@ -19,6 +19,17 @@ test('job search uses real Responses web search, reads postings and returns cite
 const response=output=>({ok:true,json:async()=>({status:'completed',output,usage:{input_tokens:10,output_tokens:5}})});
 const action=(name,args,id)=>response([{type:'function_call',call_id:id,name,arguments:JSON.stringify(args)}]);
 const final=(answer,sourceIds=[],kind='guidance')=>response([{type:'message',content:[{type:'output_text',text:JSON.stringify({kind,answer,sourceIds})}]}]);
+test('offer adapter carries validated untrusted offers and enforces compare_offers after guidance',async()=>{
+ let count=0,selected;const answer=await runOpenAIMultiAgent({message:'Compare my offer.',context:{offers:[{company:'Fictional Alpha',baseSalary:90000,location:'Remote (US)'}]}},{apiKey:'synthetic-private',request:async(url,options)=>{
+  const body=JSON.parse(options.body);count++;const original=body.input.find(i=>i.content?.startsWith('Original student request'));assert.match(original.content,/untrusted data/);assert.equal(JSON.parse(original.content.split('\n').slice(1).join('\n')).offers[0].baseSalary,90000);
+  if(count===1){assert.equal(body.tool_choice.name,'consult_offer');return action('consult_offer',{task:'Compare'},'consult');}
+  if(count===2){assert.deepEqual(body.tools.map(t=>t.name).sort(),['compare_offers','draft_negotiation','search_guidance']);return action('search_guidance',{query:'offer compensation'},'retrieve');}
+  if(count===3){selected=JSON.parse(body.input.at(-1).output)[0].id;assert.equal(body.tool_choice.name,'compare_offers');return action('compare_offers',{},'compare');}
+  if(count===4)assert.equal(JSON.parse(body.input.at(-1).output).offers[0].knownYearOneTotal,90000);
+  return final('Confirm the missing terms before comparing complete totals.',[selected]);
+ }});assert.equal(answer.usage.modelCalls,5);assert.equal(answer.offerComparison.offers[0].yearOneTotal,'Not listed');
+});
+test('invalid offer context is rejected before any provider call',async()=>{let called=false;await assert.rejects(()=>runOpenAIMultiAgent({message:'Compare offers',context:{offers:[{company:'Fictional',baseSalary:-1}]}},{apiKey:'synthetic',request:async()=>{called=true;}}),/non-negative/);assert.equal(called,false);});
 test('Responses protocol isolates specialist loops and replays verified results to the manager',async()=>{
  const calls=[];let selected;
  const answer=await runOpenAIMultiAgent({message:'Draft my interview introduction.',history:[{role:'user',content:'I study MIS.'}]},{apiKey:'synthetic-private',request:async(url,options)=>{
@@ -27,7 +38,7 @@ test('Responses protocol isolates specialist loops and replays verified results 
   if(calls.length===1){assert.ok(body.tools.every(t=>t.name.startsWith('consult_')));return action('consult_interview',{task:'Draft the introduction.'},'manager-call');}
   if(calls.length===2){assert.match(body.instructions,/You are the interview specialist/);assert.deepEqual(body.tool_choice,{type:'function',name:'search_guidance'});return action('search_guidance',{query:'interview introduction'},'interview-call');}
   if(calls.length===3){assert.equal(body.input.at(-1).call_id,'interview-call');selected=JSON.parse(body.input.at(-1).output)[0].id;return final('I am an MIS student interested in [role].',[selected]);}
-  assert.match(body.instructions,/You coordinate three/);assert.equal(body.input.at(-1).call_id,'manager-call');assert.equal(JSON.parse(body.input.at(-1).output).agent,'Interview specialist');
+  assert.match(body.instructions,/You coordinate four/);assert.equal(body.input.at(-1).call_id,'manager-call');assert.equal(JSON.parse(body.input.at(-1).output).agent,'Interview specialist');
   return final('I am an MIS student interested in [role].',[selected]);
  }});
  assert.equal(answer.usage.modelCalls,4);assert.equal(answer.usage.inputTokens,40);assert.equal(answer.sources[0].id,selected);assert.deepEqual(answer.agentsUsed,['Interview specialist']);assert.doesNotMatch(answer.text,/Guidance sources:/);

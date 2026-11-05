@@ -1,4 +1,7 @@
 import {classifyInterviewRequest} from './dist/interview-assist.mjs';
+// Negotiation drafts use an allowlisted template and original-user-text checks,
+// rather than trusting a second model to detect unsupported claims.
+export function checkedNegotiationReply(text,draft){return draft?draft.text+'\n\n'+draft.notice:text;}
 export function wantsInterviewDraft(message){
  if(/\b(?:don['’]t|do not)\s+(?:write|draft)\b/i.test(message))return false;
  return classifyInterviewRequest(message)?.intent==='interview-draft'||/\b(?:draft|write)\b.*\b(?:interview|introduction|answer)\b/i.test(message);

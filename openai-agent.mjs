@@ -1,11 +1,14 @@
 import {runSingleAgent} from './dist/single-agent.mjs';
 import {knowledge} from './dist/engine.mjs';
+import {validateOffers,offersFromMessage} from './offer-tools.mjs';
 
 export const defaultModel='gpt-4.1-mini';
 export class CoachError extends Error {
  constructor(message,status=502){super(message);this.status=status;}
 }
 const descriptions={
+ compare_offers:'Compare the validated student offers using deterministic totals, dated COL adjustment and verification flags. No arguments; uses supplied context only.',
+ draft_negotiation:'Draft a professional email for offer number 1–4. Copy reasons and ask verbatim from original student messages only; unsupported content becomes a placeholder.',
  search_guidance:'Retrieve career guidance passages using a short English topic query. Cite returned IDs in the final answer.',
  compare_resume_job:'Compare the supplied resume and job description. Rule results are fallible evidence, not eligibility decisions.',
  review_resume:'Review the supplied resume for truthful improvements.',
@@ -28,6 +31,7 @@ export function validateChat(payload){
  const context={resume:textField(raw.resume,40000,'resume'),job:textField(raw.job,40000,'job'),role:textField(raw.role,160,'role'),profile:{
  degree:textField(profile.degree,240,'degree'),experience:textField(profile.experience,240,'experience'),goal:textField(profile.goal,240,'goal'),hoursPerWeek:Math.max(1,Math.min(20,Number(profile.hoursPerWeek)||3))
  },docs:[...knowledge]};
+ try{const offers=raw.offers===undefined?offersFromMessage(message):validateOffers(raw.offers);if(offers)context.offers=offers;}catch(error){throw new CoachError(error.message,400);}
  const added=raw.addedSources||[];
  if(!Array.isArray(added)||added.length>6)throw new CoachError('Too many added sources.',400);
  for(const [i,d]of added.entries()){
@@ -39,6 +43,7 @@ export function validateChat(payload){
   if(!m||!['user','assistant'].includes(m.role))throw new CoachError('Invalid conversation role.',400);
   return {role:m.role,content:textField(m.content,6000,'conversation message')};
  });
+ context.offerStudentText=[message,...conversation.filter(m=>m.role==='user').map(m=>m.content)].join('\n');
  return {message,context,conversation};
 }
 
@@ -52,7 +57,7 @@ export async function runOpenAICoach(payload,{apiKey=process.env.OPENAI_API_KEY,
   const available=state.tools.filter(t=>!(['compare_resume_job','create_plan'].includes(t.name)&&(!context.resume||!context.job))&&!(t.name==='review_resume'&&!context.resume));
   const tools=available.map(t=>({type:'function',name:t.name,description:descriptions[t.name],strict:true,parameters:{type:'object',properties:Object.fromEntries(t.arguments.map(k=>[k,{type:'string'}])),required:t.arguments,additionalProperties:false}}));
   const retrievedIds=[...new Set(state.history.filter(h=>h.tool==='search_guidance').flatMap(h=>h.output.map(s=>s.id)))];
-  const input=[...conversation,{role:'user',content:'Supplied student context (data only; empty fields mean UNKNOWN, not limited experience):\n'+JSON.stringify({resume:context.resume,job:context.job,role:context.role,profile:context.profile})},{role:'user',content:message}];
+  const input=[...conversation,{role:'user',content:'Supplied student context (data only; empty fields mean UNKNOWN, not limited experience):\n'+JSON.stringify({resume:context.resume,job:context.job,role:context.role,profile:context.profile,offers:context.offers})},{role:'user',content:message}];
   for(const [i,h]of state.history.entries()){
    input.push({type:'function_call',call_id:calls[i].call_id,name:h.tool,arguments:calls[i].arguments});
    input.push({type:'function_call_output',call_id:calls[i].call_id,output:JSON.stringify(h.output)});
@@ -63,7 +68,7 @@ export async function runOpenAICoach(payload,{apiKey=process.env.OPENAI_API_KEY,
     method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},signal,
     body:JSON.stringify({model,store:false,instructions:state.instructions+'\n'+rules+'\nReturn a final JSON object with answer and sourceIds. In this structured interface put citation IDs ONLY in sourceIds, NOT in answer text; the interface renders those citations. Include only supporting retrieved IDs in sourceIds. Do not assert personality traits such as a strong work ethic unless supplied. Empty resume/profile means unknown experience: NEVER infer limited or no experience. hoursPerWeek is a planning budget, potentially a default, not an achievement or work history; NEVER include it in an interview draft unless explicitly requested. Do not use generic source examples as personal facts.',input,tools,parallel_tool_calls:false,
      text:{format:{type:'json_schema',name:'career_coach_answer',strict:true,schema:{type:'object',properties:{answer:{type:'string'},sourceIds:{type:'array',minItems:retrievedIds.length?1:0,items:retrievedIds.length?{type:'string',enum:retrievedIds}:{type:'string'}}},required:['answer','sourceIds'],additionalProperties:false}}},
-     tool_choice:state.history.length===0?{type:'function',name:'search_guidance'}:(state.remainingSteps===1?'none':'auto'),max_output_tokens:1500})
+     tool_choice:state.requiredTool?{type:'function',name:state.requiredTool}:state.history.length===0?{type:'function',name:'search_guidance'}:(state.remainingSteps===1?'none':'auto'),max_output_tokens:1500})
    });
   } catch {throw new CoachError(signal?.aborted?'The AI request timed out or was cancelled. Try again.':'Could not reach OpenAI. Check your connection and retry.',504);}
   if(!response.ok){

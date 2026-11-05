@@ -1,64 +1,72 @@
-# Career Compass multi-agent edition — 0.7.1
+# Stride multi-agent architecture — 0.11.0
 
-This repository contains the multi-agent interface and Node backend. GitHub Pages serves static assets; the configured hosted backend is deployed separately. No API credentials are included.
+GitHub Pages serves the static interface. A separately hosted backend calls the OpenAI Responses API. The professor can instead download the project, put their own key in a private .env beside serve.mjs, and run Start-Stride.cmd. No new npm dependencies were added.
 
-## What makes it multi-agent
+## Agent team
 
-A model-driven career coordinator calls three separately instructed, independently executed specialist model loops as tools. This is a manager pattern implemented directly with the Responses API, rather than buttons or a keyword router. All agents currently use the same configurable model (gpt-4.1-mini by default); their instructions, tool scope and execution loops distinguish them. No Agents SDK dependency is needed.
+One coordinator selects among four independently instructed specialist loops. All use the configured model, gpt-4.1-mini by default. Different instructions, tool permissions and isolated histories define their roles; the coordinator synthesizes successful findings. No Agents SDK is required.
 
-| Agent | Role | Permitted tools |
+| Agent | Scope | Permitted tools |
 | --- | --- | --- |
-| Coordinator | Select tasks and synthesize one reply | consult_resume, consult_interview, consult_career |
+| Career coordinator | Route tasks and synthesize findings | consult_resume, consult_interview, consult_career, consult_offer |
 | Resume specialist | Truthful resume review and job evidence | search_guidance, review_resume, compare_resume_job |
-| Interview specialist | Requested answer drafts and explicit mock practice | search_guidance, review_interview_answer |
-| Career planning specialist | Role exploration and practical plans | search_guidance, create_plan |
+| Interview specialist | Requested drafts and explicit mock practice | search_guidance, review_interview_answer |
+| Career planning specialist | Role exploration, plans, live jobs and employer research | search_guidance, create_plan, search_jobs, research_employer |
+| Offer evaluation specialist | Student-supplied compensation comparisons and negotiation drafts | search_guidance, compare_offers, draft_negotiation |
 
 ```mermaid
 flowchart TD
- Student[Student chat and context] --> Coordinator
+ Student[Student chat and validated context] --> Coordinator
  Coordinator --> Resume[Resume specialist]
  Coordinator --> Interview[Interview specialist]
  Coordinator --> Career[Career planning specialist]
- Resume --> Retrieval[Local RAG and scoped tools]
- Interview --> Retrieval
- Career --> Retrieval
+ Coordinator --> Offer[Offer evaluation specialist]
+ Resume --> RAG[Local RAG and scoped tools]
+ Interview --> RAG
+ Career --> RAG
+ Offer --> RAG
+ Offer --> Math[Deterministic compare_offers]
+ Offer --> Draft[Guarded draft_negotiation template]
+ Offline[Offers tab without API key] --> Math
  Resume --> Synthesis[Coordinator combines successful findings]
  Interview --> Synthesis
  Career --> Synthesis
- Synthesis --> Reply[One reply with expandable evidence]
+ Offer --> Synthesis
+ Synthesis --> Reply[One reply with expandable sources and activity]
 ```
 
-## Context, retrieval and evidence
+## Context and evidence
 
-Each specialist receives the original request, validated resume/job context, profile and last 20 conversation messages. The coordinator task is labelled as a task, not new student facts. Specialists have separate tool histories and must retrieve guidance before returning findings. With sufficient resume text, the resume specialist must then complete compare_resume_job when job context is available, or review_resume when only a resume is available. The runtime and API tool selection both enforce this before generation; failed tools do not count as completed evidence checks. The coordinator receives completed findings and their selected source records. Source IDs are checked against those records at both layers. Validation does not prove claim support, relevance, factual accuracy or perfect resistance to prompt injection.
+Original request, validated resume/job/profile/offer context and the last 20 conversation messages are untrusted data. Coordinator tasks and retrieved examples cannot establish student facts. The same offer validator handles the Offers form, explicit offer JSON in chat and backend requests. Unknown offer terms become Not listed. The Offers tab stores up to four offers in the existing browser workspace; no account sync. Choosing Discuss attaches them to the current chat, whose context is restored when reopened. A new chat clears its attached offers. Natural-language offer letters are conversation data; the form or explicit JSON supplies deterministic inputs.
 
-Sources and actual agent/tool traces stay collapsed below replies. No fabricated progress or private model reasoning is displayed. Browser history and document extraction are preserved.
+Every specialist retrieves guidance first. The resume specialist must then complete compare_resume_job when both documents are supplied, or review_resume when only the resume is available. The offer specialist must complete compare_offers when at least one supplied offer includes a base salary. Both the loop and provider tool selection enforce required evidence. Failed tools do not satisfy it. The coordinator routes offer/compensation/negotiation requests to consult_offer; combined offer-and-onboarding-plan requests require both consult_offer and consult_career.
 
-## Bounded execution and failures
+Six new original summaries cover compensation, equity/cliffs, negotiation, deadlines, benefits and student priorities, with source URLs and review dates. BM25 retrieves guidance locally. Source IDs are checked against completed retrieval/consultation records at both layers; this does not prove every claim is supported. Sources and actual tool events remain expandable. consult_offer, search_guidance and compare_offers appear in the activity trace; no fabricated progress or private reasoning is exposed.
 
-- At most 16 model calls: up to four coordinator decisions plus four for each of three specialists.
-- Each specialist can be consulted once per request. Specialists cannot delegate.
-- Calls run sequentially; the API disables parallel function calls.
-- Tools are unavailable on the final decision of each loop.
-- Output limits: 1,200 tokens per specialist call and 1,500 per coordinator call. These are output caps, not dollar caps; documents and replayed context increase input usage.
-- Targeted draft checks can request revisions within the same call budget; they are not comprehensive factuality checks.
-- Local HTTP timeout is 120 seconds. Cancellation propagates via the shared abort signal.
-- Failed specialists contribute no findings or sources. Successful work can be returned with an explicit unavailable-part notice. If all consulted specialists fail, the request fails visibly.
-- Authentication, quota, connectivity and total-budget errors stop the whole request. There is no fabricated AI fallback.
-- Existing limits of two concurrent requests, 20/minute and 60/day remain per process; they reset on restart and are not durable quota controls.
+## Offer math and tool safety
 
-## Running and comparing
+compare_offers accepts 1–4 offers with allowlisted fields. It rejects negative/non-numeric amounts, base salary above $2M, conflicting bonus amount/percentage inputs, invalid dates and unsupported fields. It uses USD and deterministic arithmetic; the model must not estimate market salaries or recompute totals. Annual bonus comes from either an explicit amount or supplied target percentage. Signing and relocation count once. Equity assumes linear vesting with catch-up at the supplied cliff; vesting duration defaults to four years with an explicit assumption. Unknown cliff terms are not guessed. Retirement assumes employee contributions up to the supplied cap and applies the supplied employer match rate. Verify actual vesting/plan terms.
 
-Run Setup-API-Key.cmd with your own key, then Start-Career-Compass.cmd. Open http://127.0.0.1:4177. With Node on the path, `node serve.mjs` also works. No npm install is needed. Never include `.env` in shared ZIPs or Git.
+Complete totals remain Not listed when a monetary component is unknown; separately labelled disclosed subtotals show known components. Complete packages are ranked by year-one and COL-adjusted year-one values. Differences are leader minus each offer, with percentage using that offer’s value as denominator; zero denominators remain Not listed. The tool never chooses an offer. Four-year projections assume constant salary/target bonus and equity value, continued service and full years, not tax, raise or liquidity forecasts.
 
-For a single-agent comparison, set CAREER_COMPASS_AGENT_MODE=single-agent in the server process environment before starting. The isolated edition defaults to multi-agent. Status reports the architecture. Both use the same validation, retrieval corpus and model configuration.
+The bundled public BEA snapshot is 2024 all-items Regional Price Parities for 30 metros, released 2026-02-19 and checked 2026-11-05. Remote (US) explicitly uses national reference 100, not actual residential costs. Unknown locations receive no adjustment. **Not financial or legal advice; the COL table is approximate and dated.** Flags request verification of expiry, equity schedules, signing clawbacks, bonus/PTO, relocation and employment terms.
 
-Without a key, practice mode uses local templates and is not a simulated multi-agent run. Confirm the hosted backend status reports architecture=multi-agent before presenting the public app as multi-agent.
+draft_negotiation uses a short application-owned first-person template. The selected offer must exist. Reasons and requested ask must occur verbatim in original student messages; unsupported personal claims and asks become bracketed placeholders. It invents no market salary. Specialist and coordinator rewrites cannot replace the protected tool draft with embellished claims. Nothing is emailed or accepted automatically. Student-provided statements remain self-reports, not independently verified facts.
 
-## Assignment alignment and remaining work
+## Unchanged execution limits and failures
 
-Student career needs, document entry/upload, RAG, tools, AI-assisted coding and the chat interface are retained. This edition adds model-selected specialist delegation and observable execution traces. The online requirement depends on the GitHub Pages interface and the separately deployed compatible backend both remaining accessible.
+- At most 16 model calls globally, including existing live research calls.
+- At most three sequential, unique specialist consultations, even though four specialists are available. Each specialist can be consulted once and cannot delegate.
+- Four coordinator decisions and four decisions per specialist. Tools unavailable on each loop’s last decision.
+- Output caps: 1,200 tokens per specialist call and 1,500 per coordinator call. These are not billing caps.
+- HTTP timeout 120 seconds; cancellation propagates through the shared abort signal.
+- Failed specialists contribute no findings or sources. Successful portions may return with a clear unavailable-part notice. All-specialist failure, authentication/quota or global-budget failure stops the request.
+- Two concurrent requests, 20/minute and 60/day per process/isolate remain; counters reset and are not durable spending controls.
 
-Before replacing the public version: review generated advice, test with students, check mobile/attachment workflows, compare usefulness/cost/latency against the baseline, deploy a compatible backend and verify frontend/backend together. More agents do not establish better results. Present only the version actually submitted and demonstrated.
+## Single-agent baseline and offline mode
 
-Official references: [orchestration](https://developers.openai.com/api/docs/guides/agents/orchestration), [function calling](https://developers.openai.com/api/docs/guides/function-calling).
+CAREER_COMPASS_AGENT_MODE=single-agent retains the same validation, corpus, model and compare_offers / draft_negotiation tools. Required offer evidence and protected drafts also apply there; no delegation is added. Without a key, deterministic Offers calculations and storage work fully. General practice chat is template-based, not a live multi-agent run. AI discussion, negotiation drafting through chat, live jobs and employer research require a compatible backend and the visitor’s own key. Hosted requests never fall back to the owner key.
+
+## Verification
+
+Run node --test tests/*.test.mjs. See [Offer-Specialist.md](../evaluation/Offer-Specialist.md) for recorded step results, fictional arithmetic examples, actual offline browser QA and limitations. Mock protocol tests do not establish live-model quality, user usefulness or better outcomes than the baseline. Student feedback and a paid live offer-model evaluation remain optional follow-up evaluation, not claimed completed work.

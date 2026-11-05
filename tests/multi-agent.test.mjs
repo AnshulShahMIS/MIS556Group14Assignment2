@@ -16,6 +16,22 @@ function scripted(ids,{action,inspect}={}){
   return final(state);
  };
 }
+test('offer questions route to fourth specialist with retrieval then deterministic evidence',async()=>{
+ const offers=[{company:'Fictional Acme',location:'Phoenix, AZ',baseSalary:90000}];
+ const result=await runMultiAgent({message:'I got an offer; is it fair?',context:{docs:knowledge,offers},decide:scripted(['offer'],{inspect:state=>{if(state.agentId==='coordinator'&&!state.history.length)assert.equal(state.requiredTool,'consult_offer');if(state.agentId==='offer')assert.deepEqual(state.tools.map(t=>t.name).sort(),state.remainingSteps===1?[]:['compare_offers','draft_negotiation','search_guidance']);}})});
+ assert.deepEqual(result.agentsUsed,['Offer evaluation specialist']);assert.equal(result.offerComparison.offers[0].baseSalary,90000);assert.deepEqual(result.trace.filter(e=>['consult_offer','search_guidance','compare_offers'].includes(e.tool)&&e.status!=='started').map(e=>e.tool),['search_guidance','compare_offers','consult_offer']);assert.ok(result.modelCalls<=16);
+});
+test('combined offer and onboarding plan consults offer and career within original consultation budget',async()=>{
+ const result=await runMultiAgent({message:'Compare my offers and make a 30-day onboarding plan.',context:{...context,offers:[{company:'Fictional',location:'Remote (US)',baseSalary:80000}]},decide:scripted(['offer','career'])});
+ assert.deepEqual(result.agentsUsed,['Offer evaluation specialist','Career planning specialist']);assert.ok(result.modelCalls<=16);assert.ok(result.careerPlan);
+});
+test('offer evidence cannot be skipped after retrieval or replaced by model estimates',async()=>{
+ await assert.rejects(()=>runMultiAgent({message:'Compare my offer.',context:{docs:knowledge,offers:[{company:'Fictional',baseSalary:80000,location:'Phoenix, AZ'}]},decide:async state=>{if(state.agentId==='coordinator')return state.history.length?final(state):tool('consult_offer',{task:'Compare'});if(!state.history.length)return tool('search_guidance',{query:'offer compensation'});assert.equal(state.requiredTool,'compare_offers');return final(state,'This is worth $500000.');}}),/could not complete/);
+});
+test('offer negotiation tool protects draft from unsupported specialist and coordinator embellishments',async()=>{
+ const result=await runMultiAgent({message:'Draft a negotiation email for my offer.',context:{docs:knowledge,offers:[{company:'Fictional',baseSalary:80000,location:'Phoenix, AZ'}]},decide:async state=>{if(state.agentId==='coordinator')return state.history.length?final(state,'I led a $10M project.'):tool('consult_offer',{task:'Draft'});if(state.requiredTool)return tool(state.requiredTool,state.requiredTool==='search_guidance'?{query:'offer negotiation'}:{});if(state.history.length===2)return tool('draft_negotiation',{offer:'1',reasons:'I led a $10M project',ask:'$200000 market salary'});return final(state,'I deserve $200000.');}});
+ assert.match(result.text,/\[your stated, supportable reason\]/);assert.doesNotMatch(result.text,/10M|200000|deserve/);
+});
 test('career plan replies expose a separate saved artifact with generated weekly steps',async()=>{
  const result=await runMultiAgent({message:'Create a four-week career plan.',context,decide:scripted(['career'],{action:'create_plan'})});
  assert.equal(result.careerPlan.text,result.text);assert.equal(result.careerPlan.weeks.length,4);assert.ok(result.careerPlan.createdAt);

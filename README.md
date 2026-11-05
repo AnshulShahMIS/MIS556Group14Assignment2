@@ -1,4 +1,4 @@
-# Stride — multi-agent career coach (0.10.0)
+# Stride — multi-agent career coach (0.11.0)
 
 ## Professor setup: private .env file
 
@@ -12,7 +12,7 @@ GitHub Pages serves the interface. The separate hosted AI backend is configured 
 
 ## Agent team and RAG
 
-A career coordinator selects resume, interview and career planning specialists based on the request and recent conversation. Each specialist runs its own model/tool loop, with separate instructions and restricted tools. The coordinator combines completed findings into one reply. Greetings can be answered directly.
+A career coordinator selects resume, interview, career planning and offer evaluation specialists based on the request and recent conversation. Each specialist runs its own model/tool loop, with separate instructions and restricted tools. The coordinator combines completed findings into one reply. Greetings can be answered directly.
 
 Specialists retrieve the career guidance library before generation. Resume analysis must also complete compare_resume_job when both documents are present, or review_resume when only the resume is available. Source IDs are validated at both layers; claim support and personal facts still need review. Sources and actual agent activity appear in a collapsed panel below replies.
 
@@ -42,7 +42,7 @@ AI backend changes require a separate backend deployment. Uploading this reposit
 
 ## Testing and limits
 
-147 automated tests pass with node --test tests/*.test.mjs. Fictional development results are in evaluation/. Live scripts are opt-in paid API checks, not part of the offline suite. They do not establish real student usefulness or guaranteed factual accuracy. Student feedback and the final presentation remain.
+164 automated tests pass with node --test tests/*.test.mjs. Fictional development results are in evaluation/. Live scripts are opt-in paid API checks, not part of the offline suite. They do not establish real student usefulness or guaranteed factual accuracy. Student feedback and the final presentation remain.
 
 Each request has at most 16 model calls, three sequential specialist consultations and a 120-second HTTP timeout. Specialist calls cap output at 1,200 tokens; coordinator calls at 1,500. Multiple agents can increase latency and input/output usage. Local and hosted request counters are process/isolate-local, reset on restart, and are not durable billing caps.
 
@@ -63,3 +63,21 @@ Chat, Career Plan, Recommended Jobs and Applications keep generated work availab
 The Employer Research tab searches live web sources for a named company, its products, dated recent news, careers information and suggested interview questions. It saves a cited briefing that can be refreshed or discussed in chat. Favorite Companies stores a shortlist and personal notes; companies can be saved without a key or directly from a job card. Refreshing research preserves favorites and notes. Records remain in this browser, without account synchronization.
 
 Employer research is a scoped tool of the career planning specialist, with one extra model/web-search call inside the existing request budget. Only public company and optional role keywords enter the search request. Missing search evidence fails visibly rather than producing a model-memory company report. Source validation does not establish that every factual claim is supported.
+
+## Offer evaluation — 0.11.0
+
+The fourth specialist evaluates student-supplied offers and drafts negotiation emails. The coordinator routes offer/compensation/negotiation requests to `consult_offer`; combined offer-and-plan requests consult both offer and career. There are four available specialists, but at most three unique specialists per request, unchanged from the previous version.
+
+Open **Offers** beside Career Plan. Add up to four offers, edit/delete them and compare compensation without an API key. Nothing is synced to an account. The form accepts disclosed annual USD amounts; blank values stay **Not listed**, while confirmed absent benefits can be entered as 0. Incomplete packages show disclosed subtotals and are excluded from complete-total rankings. The retirement fields mean employer match rate on employee contributions, up to the entered contribution cap as a percentage of base. The calculator assumes contribution up to that cap.
+
+**Discuss with coach** attaches the validated offers to the current chat. AI discussion and negotiation require the professor’s own `.env` key locally, or a visitor key on the hosted app. Offers remain in that chat’s context until a new chat is started. Offers can also be pasted in chat as JSON using the exact field names below; the same validator rejects unsupported fields and invalid numbers. Natural-language offer letters are untrusted text: use the form or JSON to provide calculation inputs rather than relying on model extraction.
+
+```json
+{"offers":[{"company":"Fictional Alpha","role":"Graduate Analyst","location":"Phoenix, AZ","baseSalary":90000,"annualBonusTargetPct":5,"signingBonus":2000,"relocation":0,"equityTotalValue":0,"retirementMatchPct":0,"ptoDays":15}]}
+```
+
+Other optional fields: `annualBonus` (instead of `annualBonusTargetPct`), `vestingYears` (default 4), `cliffYears`, `retirementMatchCapPct`, `remotePolicy`, `startDate`, `expiresOn`, `notes`. Dates use YYYY-MM-DD. Equity assumes linear vesting with cliff catch-up and constant grant value, subject to actual agreement terms. Signing/relocation are counted once. Four-year projections hold base and target bonus constant and do not predict raises or taxes. Unknown vesting/cliff terms remain flagged.
+
+The bundled COL snapshot covers 30 US metros using BEA 2024 all-items Regional Price Parities, released February 19, 2026 and checked November 5, 2026. Remote (US) explicitly uses the national reference 100; unknown locations receive no adjustment. This is a dated approximation, not a personal budget, salary benchmark, or financial/legal advice. The tool ranks numbers, never decides which offer to accept. Review terms with appropriate career, benefits, legal or financial advisers.
+
+See [offer evaluation results](evaluation/Offer-Specialist.md) and [architecture](docs/Multi-Agent-Architecture.md). All automated offer examples are fictional; paid live offer-model checks have not been represented as completed.

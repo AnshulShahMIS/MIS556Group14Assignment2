@@ -1,13 +1,15 @@
+import {validateOffers} from './offer-tools.mjs';
 export const workspaceKey='career-compass-workspace-v1';
 export const applicationStatuses=['To apply','In progress','Applied'];
 const text=(v,max=1000)=>String(v??'').slice(0,max);
 export const companyKey=value=>String(value||'').normalize('NFKC').trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/+$/,'').replace(/\s+/g,' ');
 export function safePostingLink(value){try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password?u.href:null;}catch{return null;}}
 export function createWorkspaceStore(storage,{now=()=>new Date().toISOString()}={}){
- const read=()=>{const raw=storage.getItem(workspaceKey);if(!raw)return {version:1,plans:[],jobs:[],companies:[]};const s=JSON.parse(raw);if(s.version!==1||!Array.isArray(s.plans)||!Array.isArray(s.jobs)||(s.companies!==undefined&&!Array.isArray(s.companies)))throw Error('Saved workspace could not be read. Existing data was not replaced.');s.companies??=[];return s;};
+ const read=()=>{const raw=storage.getItem(workspaceKey);if(!raw)return {version:1,plans:[],jobs:[],companies:[],offers:[]};const s=JSON.parse(raw);if(s.version!==1||!Array.isArray(s.plans)||!Array.isArray(s.jobs)||(s.companies!==undefined&&!Array.isArray(s.companies)))throw Error('Saved workspace could not be read. Existing data was not replaced.');s.companies??=[];if(s.offers!==undefined&&(!Array.isArray(s.offers)||s.offers.length>4))throw Error('Saved offers could not be read.');s.offers??=[];return s;};
  const change=fn=>{const s=read();fn(s);storage.setItem(workspaceKey,JSON.stringify(s));return s;};
  return {
   read,
+  saveOffer(values,id=null){return change(s=>{const offer=validateOffers([values])[0];const found=id?s.offers.find(o=>o.id===id):null;if(id&&!found)throw Error('Offer not found.');if(found)Object.assign(found,offer);else {if(s.offers.length>=4)throw Error('You can save up to 4 offers.');s.offers.push({...offer,id:crypto.randomUUID()});}});},
   savePlan(plan,chatId){return change(s=>{
    const content=text(plan.text,24000);if(!content.trim())throw Error('The plan is empty.');
    if(s.plans.some(p=>p.chatId===chatId&&p.text===content))return;
@@ -39,7 +41,7 @@ export function createWorkspaceStore(storage,{now=()=>new Date().toISOString()}=
   });},
   updateCompany(id,patch){return change(s=>{const company=s.companies.find(c=>c.id===id);if(!company)throw Error('Company not found.');if(patch.favorite!==undefined)company.favorite=!!patch.favorite;if(patch.notes!==undefined)company.notes=text(patch.notes,4000);});},
   completeWeek(id,index,done){return change(s=>{const plan=s.plans.find(p=>p.id===id);if(!plan||!Number.isInteger(index)||index<0||index>=plan.weeks.length)throw Error('Plan step not found.');const set=new Set(plan.completed);done?set.add(index):set.delete(index);plan.completed=[...set];});},
-  remove(kind,id){return change(s=>{if(!['jobs','plans','companies'].includes(kind))throw Error('Invalid collection.');s[kind]=s[kind].filter(x=>x.id!==id);});},
+  remove(kind,id){return change(s=>{if(!['jobs','plans','companies','offers'].includes(kind))throw Error('Invalid collection.');s[kind]=s[kind].filter(x=>x.id!==id);});},
   detachChat(chatId){return change(s=>{for(const p of [...s.plans,...s.jobs,...s.companies])if(p.chatId===chatId)p.chatId='';});}
  };
 }
