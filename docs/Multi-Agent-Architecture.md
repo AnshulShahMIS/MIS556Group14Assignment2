@@ -1,4 +1,4 @@
-# Stride multi-agent architecture — 0.11.0
+# Stride multi-agent architecture — 0.11.1
 
 GitHub Pages serves the static interface. A separately hosted backend calls the OpenAI Responses API. The professor can instead download the project, put their own key in a private .env beside serve.mjs, and run Start-Stride.cmd. No new npm dependencies were added.
 
@@ -65,7 +65,7 @@ draft_negotiation uses a short application-owned first-person template. The sele
 
 ## Single-agent baseline and offline mode
 
-CAREER_COMPASS_AGENT_MODE=single-agent retains the same validation, corpus, model and compare_offers / draft_negotiation tools. Required offer evidence and protected drafts also apply there; no delegation is added. Without a key, deterministic Offers calculations and storage work fully. General practice chat is template-based, not a live multi-agent run. AI discussion, negotiation drafting through chat, live jobs and employer research require a compatible backend and the visitor’s own key. Hosted requests never fall back to the owner key.
+CAREER_COMPASS_AGENT_MODE=single-agent retains the same validation, corpus, model and compare_offers / draft_negotiation tools. Required offer evidence and protected drafts also apply there; no delegation is added. Without a key, deterministic Offers calculations and storage work fully. General practice chat is template-based, not a live multi-agent run. AI discussion, negotiation drafting through chat, live jobs and employer research require the downloaded local backend and a private .env. The browser accepts no credentials and enables AI only on a configured localhost server. Hosted requests never fall back to the owner key.
 
 ## Verification
 
