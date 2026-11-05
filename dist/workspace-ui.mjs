@@ -1,5 +1,5 @@
-import {createWorkspaceStore,workspaceKey,applicationStatuses,safePostingLink,companyKey} from './workspace-store.mjs?v=offers-011';
-import {createOffersPanel} from './offer-workspace.mjs?v=offers-011';
+import {createWorkspaceStore,workspaceKey,applicationStatuses,safePostingLink,companyKey} from './workspace-store.mjs?v=local-env-012';
+import {createOffersPanel} from './offer-workspace.mjs?v=local-env-012';
 import {appendJobLinks} from './job-links.mjs';
 export function mountWorkspace({storage=localStorage,getChatId,getLastReply,isAIEnabled=()=>true,isBusy=()=>false,openChat,ask,notify}){
  const store=createWorkspaceStore(storage),$=s=>document.querySelector(s);
