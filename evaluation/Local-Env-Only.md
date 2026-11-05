@@ -1,0 +1,9 @@
+# Private local configuration — Stride 0.11.1
+
+The website no longer accepts API keys. Both key-entry buttons were replaced with read-only local setup help. The password form, tab-key import/state, key-management handlers and browser Authorization attachment were removed from the shipped chat flow.
+
+For full AI, download the repository, copy the blank .env.example to a private .env beside serve.mjs, add the key locally and run Start-Stride.cmd. Never commit the configured file. The public GitHub Pages interface remains a practice workspace, including offline Offers calculations. It cannot run the Node backend or read a visitor’s computer files. No owner-funded public fallback was enabled.
+
+Validation: **166/166 automated tests passed** on November 5, 2026. Two added regressions check that only configured loopback hosts enable AI and that the shipped interface contains no credential collector or Authorization attachment. Existing .env loading, public-backend owner-key isolation, HTTP private-file blocking, offer comparisons and agent tests continue passing. The first sandboxed test attempt could not connect to localhost (EACCES); the complete suite passed after network permission was granted. No paid model requests were made.
+
+Files: dist/ai-connection.mjs adds the local-only connection gate; dist/chat.mjs removes credential collection and adds setup instructions; dist/index.html replaces the controls and refreshes asset references; dist/workspace-ui.mjs refreshes its module reference; README.md, PROFESSOR-START-HERE.md and docs/Multi-Agent-Architecture.md describe private .env setup; package.json and server-http.mjs report 0.11.1; tests/local-ai-connection.test.mjs covers the security boundary; this file records verification. Hosted agent execution and hosted API authentication are unchanged.
