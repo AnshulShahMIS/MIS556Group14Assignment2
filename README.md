@@ -1,4 +1,4 @@
-# Stride — multi-agent career coach (0.11.0)
+# Stride — multi-agent career coach (0.11.1)
 
 ## Professor setup: private .env file
 
@@ -18,13 +18,11 @@ Specialists retrieve the career guidance library before generation. Resume analy
 
 See [architecture and limits](docs/Multi-Agent-Architecture.md) and [the evidence-tool fix](evaluation/Resume-Evidence-Fix.md). The same configurable model, gpt-4.1-mini by default, runs the distinct agent roles.
 
-## Use your own key on the public website
+## Credentials: private local .env only
 
-Open the public interface, select **API key** (or **Use AI with my key** on the welcome screen), enter your OpenAI API key, and choose **Use key for this tab**. No download or local server is needed. Your API account pays for model calls; the key must have model access and available quota. Authentication is checked on the first AI request.
+The interface has no key-entry form. On the public GitHub Pages site, AI setup opens read-only setup instructions. Practice tools and the Offers calculator work without credentials. For live AI, download the project and follow PROFESSOR-START-HERE.md to create your own private local .env. Never edit a GitHub source file to insert a real key. .env.example is only a blank template, not a place to upload a credential. GitHub Pages cannot execute the Node backend or read your computer’s .env. GitHub Actions secrets must never be built into frontend files.
 
-The app retains the key only in this tab’s memory. It is sent in the Authorization header over HTTPS to the configured Stride backend for each AI request and then used server-side for OpenAI. It is not written to chats, exports, browser storage or application logs, and is not included in model input. Refreshing, closing the tab or choosing Clear my key removes the application’s reference. You must trust this site, its scripts and hosting to handle your credential; running a local copy remains an alternative.
-
-The public backend requires a visitor key on every chat request and never uses the owner’s stored key as a fallback. No key means practice mode with local templates. Shared availability/request limits still apply. Local copies can continue using their private server .env, or temporarily override it with a tab key.
+The browser enables live AI only on localhost with a configured local server. It sends no visitor Authorization header and does not collect, store or manage a browser key. The existing hosted API continues rejecting unauthenticated calls and never falls back to the owner key; removing the form does not expose shared owner-funded AI.
 
 ## Run your own copy with your own API key
 
@@ -42,17 +40,17 @@ AI backend changes require a separate backend deployment. Uploading this reposit
 
 ## Testing and limits
 
-164 automated tests pass with node --test tests/*.test.mjs. Fictional development results are in evaluation/. Live scripts are opt-in paid API checks, not part of the offline suite. They do not establish real student usefulness or guaranteed factual accuracy. Student feedback and the final presentation remain.
+166 automated tests pass with node --test tests/*.test.mjs. Fictional development results are in evaluation/. Live scripts are opt-in paid API checks, not part of the offline suite. They do not establish real student usefulness or guaranteed factual accuracy. Student feedback and the final presentation remain.
 
 Each request has at most 16 model calls, three sequential specialist consultations and a 120-second HTTP timeout. Specialist calls cap output at 1,200 tokens; coordinator calls at 1,500. Multiple agents can increase latency and input/output usage. Local and hosted request counters are process/isolate-local, reset on restart, and are not durable billing caps.
 
-Messages, supplied document text, recent history and relevant guidance are sent through the backend to OpenAI in AI mode. Visitor credentials are entered in the password field, held in tab memory and forwarded to the backend for each AI request. store:false is requested; this does not promise zero provider retention. Use redacted inputs. Up to 25 chats, including supplied context, remain in this browser until deleted; they do not sync across devices. No API keys or real student resumes are packaged in this repository.
+Messages, supplied document text, recent history and relevant guidance are sent through the backend to OpenAI in AI mode. Credentials are loaded by the local server from a private .env or environment variable and are never entered in the browser. store:false is requested; this does not promise zero provider retention. Use redacted inputs. Up to 25 chats, including supplied context, remain in this browser until deleted; they do not sync across devices. No API keys or real student resumes are packaged in this repository.
 
 ## Find actual job postings
 
 In AI mode ask, for example: "Find cybersecurity analyst jobs in Phoenix and remote US roles." The planning specialist uses live OpenAI web search and checks individual employer/ATS posting pages before returning title, employer, location, available date/salary and application links. Missing details are labelled Not listed. Indexed postings can be stale and matching is imperfect; confirm availability and requirements on the employer page.
 
-Search uses two model calls within the existing request budget, plus OpenAI web-search charges on your own API account. Search keywords are sent to OpenAI web search; the complete resume is not used as the search query. The public app still requires your own key. Supported-source coverage and checks are documented in [evaluation/Live-Job-Search.md](evaluation/Live-Job-Search.md).
+Search uses two model calls within the existing request budget, plus OpenAI web-search charges on your own API account. Search keywords are sent to OpenAI web search; the complete resume is not used as the search query. Live search runs in the downloaded local app using your private .env; the public interface does not collect keys. Supported-source coverage and checks are documented in [evaluation/Live-Job-Search.md](evaluation/Live-Job-Search.md).
 
 ## Career workspace tabs
 
@@ -64,13 +62,13 @@ The Employer Research tab searches live web sources for a named company, its pro
 
 Employer research is a scoped tool of the career planning specialist, with one extra model/web-search call inside the existing request budget. Only public company and optional role keywords enter the search request. Missing search evidence fails visibly rather than producing a model-memory company report. Source validation does not establish that every factual claim is supported.
 
-## Offer evaluation — 0.11.0
+## Offer evaluation — 0.11.1
 
 The fourth specialist evaluates student-supplied offers and drafts negotiation emails. The coordinator routes offer/compensation/negotiation requests to `consult_offer`; combined offer-and-plan requests consult both offer and career. There are four available specialists, but at most three unique specialists per request, unchanged from the previous version.
 
 Open **Offers** beside Career Plan. Add up to four offers, edit/delete them and compare compensation without an API key. Nothing is synced to an account. The form accepts disclosed annual USD amounts; blank values stay **Not listed**, while confirmed absent benefits can be entered as 0. Incomplete packages show disclosed subtotals and are excluded from complete-total rankings. The retirement fields mean employer match rate on employee contributions, up to the entered contribution cap as a percentage of base. The calculator assumes contribution up to that cap.
 
-**Discuss with coach** attaches the validated offers to the current chat. AI discussion and negotiation require the professor’s own `.env` key locally, or a visitor key on the hosted app. Offers remain in that chat’s context until a new chat is started. Offers can also be pasted in chat as JSON using the exact field names below; the same validator rejects unsupported fields and invalid numbers. Natural-language offer letters are untrusted text: use the form or JSON to provide calculation inputs rather than relying on model extraction.
+**Discuss with coach** attaches the validated offers to the current chat. AI discussion and negotiation require the professor’s own `.env` key locally, using the downloaded local app. Offers remain in that chat’s context until a new chat is started. Offers can also be pasted in chat as JSON using the exact field names below; the same validator rejects unsupported fields and invalid numbers. Natural-language offer letters are untrusted text: use the form or JSON to provide calculation inputs rather than relying on model extraction.
 
 ```json
 {"offers":[{"company":"Fictional Alpha","role":"Graduate Analyst","location":"Phoenix, AZ","baseSalary":90000,"annualBonusTargetPct":5,"signingBonus":2000,"relocation":0,"equityTotalValue":0,"retirementMatchPct":0,"ptoDays":15}]}
