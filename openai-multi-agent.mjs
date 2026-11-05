@@ -2,6 +2,7 @@ import {CoachError,validateChat,defaultModel} from './openai-agent.mjs';
 import {runMultiAgent} from './multi-agent.mjs';
 import {wantsInterviewDraft} from './draft-checks.mjs';
 import {searchJobPostings} from './job-search.mjs';
+import {researchEmployer} from './employer-research.mjs';
 
 const descriptions={search_guidance:'Retrieve relevant career guidance with a short topic query.',compare_resume_job:'Compare supplied resume and job evidence. Results are fallible rules, not hiring decisions.',review_resume:'Review the supplied resume for truthful improvements.',create_plan:'Create a four-week plan using resume, job and available weekly time.',review_interview_answer:'Review an actual interview answer supplied by the student; not a draft you generated.'};
 const fatal=error=>{error.fatal=true;return error;};
@@ -45,7 +46,11 @@ export async function runOpenAIMultiAgent(payload,{apiKey=process.env.OPENAI_API
    try{return await searchJobPostings(query,{apiKey,model,request,pageRequest,signal,onUsage:tokens=>{usage.modelCalls++;usage.inputTokens+=tokens.input_tokens||0;usage.outputTokens+=tokens.output_tokens||0;}});}
    catch(error){if(error.fatal)throw fatal(new CoachError(error.message,error.status===401?401:429));throw error;}
   };
-  const result=await runMultiAgent({message,context,conversation,decide,signal,limits,onDiagnostic,searchJobs});
+  const researchCompany=async(company,role)=>{
+   try{return await researchEmployer(company,role,{apiKey,model,request,signal,onUsage:tokens=>{usage.modelCalls++;usage.inputTokens+=tokens.input_tokens||0;usage.outputTokens+=tokens.output_tokens||0;}});}
+   catch(error){if(error.fatal)throw fatal(new CoachError(error.message,error.status===401?401:429));throw error;}
+  };
+  const result=await runMultiAgent({message,context,conversation,decide,signal,limits,onDiagnostic,searchJobs,researchCompany});
   return {...result,usage,model,elapsedMs:Date.now()-started};
  }catch(error){
   if(error instanceof CoachError)throw error;

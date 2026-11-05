@@ -36,7 +36,7 @@ export function createCoachServer({architecture=process.env.CAREER_COMPASS_AGENT
    }
    if(req.method==='OPTIONS'){res.writeHead(204);res.end();return;}
   }
-  if(pathname==='/api/status'&&req.method==='GET')return json(res,200,{configured:!requiresApiKey,allowsVisitorKey:true,requiresApiKey,authMode:requiresApiKey?'visitor-key':'local-server-key',model,version:'0.8.0',architecture});
+  if(pathname==='/api/status'&&req.method==='GET')return json(res,200,{configured:!requiresApiKey,allowsVisitorKey:true,requiresApiKey,authMode:requiresApiKey?'visitor-key':'local-server-key',model,version:'0.10.0',architecture});
   if(pathname==='/api/chat'){
    if(req.method!=='POST')return json(res,405,{error:'Use POST.'});
    let requestKey;

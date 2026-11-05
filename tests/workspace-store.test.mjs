@@ -1,6 +1,12 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {createWorkspaceStore,workspaceKey} from '../dist/workspace-store.mjs';
 const memory=()=>{const m=new Map();return {getItem:k=>m.get(k)||null,setItem:(k,v)=>m.set(k,v)};};
+test('existing workspaces gain companies without losing chats, plans or applications',()=>{
+ const storage=memory();storage.setItem(workspaceKey,JSON.stringify({version:1,plans:[{id:'plan'}],jobs:[{id:'job'}]}));const store=createWorkspaceStore(storage);store.saveCompany({company:'Microsoft'},'chat-a',{favorite:true});const saved=store.read();assert.equal(saved.plans[0].id,'plan');assert.equal(saved.jobs[0].id,'job');assert.equal(saved.companies.length,1);assert.equal(saved.companies[0].favorite,true);
+});
+test('research refresh preserves favorites and notes and canonical company names avoid duplicates',()=>{
+ const store=createWorkspaceStore(memory());store.saveCompany({company:' Example Co '},'a',{favorite:true});const id=store.read().companies[0].id;store.updateCompany(id,{notes:'Prepare a question about the product team.'});store.saveCompany({company:'example co',text:'Cited company briefing',checkedAt:'2026-11-05',role:'Analyst',sources:[{url:'https://example.com',title:'Official'},{url:'javascript:alert(1)'}]},'b');const company=store.read().companies[0];assert.equal(store.read().companies.length,1);assert.equal(company.favorite,true);assert.equal(company.notes,'Prepare a question about the product team.');assert.equal(company.chatId,'b');assert.equal(company.sources.length,1);store.updateCompany(id,{favorite:false});assert.equal(store.read().companies[0].text,'Cited company briefing');
+});
 test('career plans persist separately by chat and retain versions and completion',()=>{
  const storage=memory(),store=createWorkspaceStore(storage);store.savePlan({title:'Analyst plan',text:'Four-week analyst plan',weeks:[{title:'Build project'}]},'chat-a');store.savePlan({text:'A different plan'},'chat-b');store.savePlan({text:'Four-week analyst plan'},'chat-a');assert.equal(store.read().plans.length,2);
  const plan=store.read().plans.find(p=>p.chatId==='chat-a');store.completeWeek(plan.id,0,true);const fresh=createWorkspaceStore(storage);assert.deepEqual(fresh.read().plans.find(p=>p.id===plan.id).completed,[0]);assert.equal(fresh.read().plans.length,2);

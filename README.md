@@ -1,4 +1,4 @@
-# Stride — multi-agent career coach (0.9.0)
+# Stride — multi-agent career coach (0.10.0)
 
 A conversational career coach for college students, with resume/job evidence checks, interview drafting and practice, role exploration, and four-week plans.
 
@@ -38,7 +38,7 @@ AI backend changes require a separate backend deployment. Uploading this reposit
 
 ## Testing and limits
 
-136 automated tests pass with node --test tests/*.test.mjs. Fictional development results are in evaluation/. Live scripts are opt-in paid API checks, not part of the offline suite. They do not establish real student usefulness or guaranteed factual accuracy. Student feedback and the final presentation remain.
+145 automated tests pass with node --test tests/*.test.mjs. Fictional development results are in evaluation/. Live scripts are opt-in paid API checks, not part of the offline suite. They do not establish real student usefulness or guaranteed factual accuracy. Student feedback and the final presentation remain.
 
 Each request has at most 16 model calls, three sequential specialist consultations and a 120-second HTTP timeout. Specialist calls cap output at 1,200 tokens; coordinator calls at 1,500. Multiple agents can increase latency and input/output usage. Local and hosted request counters are process/isolate-local, reset on restart, and are not durable billing caps.
 
@@ -53,3 +53,9 @@ Search uses two model calls within the existing request budget, plus OpenAI web-
 ## Career workspace tabs
 
 Chat, Career Plan, Recommended Jobs and Applications keep generated work available to revisit. Plans save versions and weekly completion. Actual job-search results can be tracked as To apply, In progress or Applied, with deadlines and notes. Discuss with coach reopens the original chat. Older plans can be saved explicitly from the latest chat reply. The tracker never submits applications. Everything is saved in the same browser; there is no account sync.
+
+## Employer research and favorite companies
+
+The Employer Research tab searches live web sources for a named company, its products, dated recent news, careers information and suggested interview questions. It saves a cited briefing that can be refreshed or discussed in chat. Favorite Companies stores a shortlist and personal notes; companies can be saved without a key or directly from a job card. Refreshing research preserves favorites and notes. Records remain in this browser, without account synchronization.
+
+Employer research is a scoped tool of the career planning specialist, with one extra model/web-search call inside the existing request budget. Only public company and optional role keywords enter the search request. Missing search evidence fails visibly rather than producing a model-memory company report. Source validation does not establish that every factual claim is supported.

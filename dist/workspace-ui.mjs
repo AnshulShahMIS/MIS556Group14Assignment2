@@ -1,13 +1,13 @@
-import {createWorkspaceStore,workspaceKey,applicationStatuses,safePostingLink} from './workspace-store.mjs';
+import {createWorkspaceStore,workspaceKey,applicationStatuses,safePostingLink,companyKey} from './workspace-store.mjs';
 import {appendJobLinks} from './job-links.mjs';
-export function mountWorkspace({storage=localStorage,getChatId,getLastReply,openChat,ask,notify}){
+export function mountWorkspace({storage=localStorage,getChatId,getLastReply,isAIEnabled=()=>true,isBusy=()=>false,openChat,ask,notify}){
  const store=createWorkspaceStore(storage),$=s=>document.querySelector(s);
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const button=(text,fn,cls='chip')=>{const b=el('button',text,cls);b.type='button';b.addEventListener('click',fn);return b;};
  const run=fn=>{try{fn();render();}catch(e){notify(e.message||'Could not save this workspace.');}};
  const nav=el('nav',undefined,'workspace-tabs');nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Career workspace');
- const panels=new Map();let selected='chat';
- const titles={chat:'Chat',plan:'Career Plan',jobs:'Recommended Jobs',applications:'Applications'};
+ const panels=new Map();let selected='chat',researchPending='',researchMessage='';
+ const titles={chat:'Chat',plan:'Career Plan',jobs:'Recommended Jobs',applications:'Applications',employers:'Employer Research',favorites:'Favorite Companies'};
  for(const [id,title]of Object.entries(titles)){
   const tab=button(title,()=>show(id),'workspace-tab');tab.id='tab-'+id;tab.dataset.tab=id;tab.setAttribute('role','tab');tab.setAttribute('aria-controls',id==='chat'?'chat-scroll':'workspace-'+id);nav.append(tab);
   if(id!=='chat'){const panel=el('section',undefined,'workspace-panel');panel.id='workspace-'+id;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',tab.id);panel.hidden=true;panels.set(id,panel);}
@@ -33,6 +33,7 @@ export function mountWorkspace({storage=localStorage,getChatId,getLastReply,open
   if(job.salary)card.append(el('p','Salary: '+job.salary));if(job.posted)card.append(el('p','Posted: '+job.posted));card.append(el('small','Retrieved '+new Date(job.seenAt).toLocaleDateString()+' · Confirm availability on the employer page.'));
   const actions=el('div',undefined,'workspace-actions');if(safePostingLink(job.url)){const link=el('a','View posting / apply ↗','chip');link.href=job.url;link.target='_blank';link.rel='noopener noreferrer';actions.append(link);}
   actions.append(button('Discuss with coach',()=>discuss(job,'Help me assess this job against my experience and prepare the next application step.')));
+  if(job.employer){actions.append(button('Research employer',()=>{show('employers');startResearch(job.employer,job.title);}));const saved=store.read().companies.find(c=>c.key===companyKey(job.employer));actions.append(button(saved?.favorite?'Company favorited ★':'Favorite company ☆',()=>run(()=>store.saveCompany({company:job.employer,role:job.title},getChatId(),{favorite:true}))));}
   if(!tracker)actions.append(button(job.tracked?'View in Applications':'Track application',()=>{run(()=>store.updateJob(job.id,{tracked:true}));show('applications');}));card.append(actions);
   if(tracker){const controls=el('div',undefined,'application-controls'),label=el('label','Application status'),select=el('select');select.setAttribute('aria-label','Application status for '+job.title);for(const status of applicationStatuses){const o=el('option',status);o.value=status;select.append(o);}select.value=job.status;select.addEventListener('change',()=>run(()=>store.updateJob(job.id,{status:select.value})));label.append(select);controls.append(label);
    const dl=el('label','Application deadline (optional)'),date=el('input');date.type='date';date.value=job.deadline;date.addEventListener('change',()=>run(()=>store.updateJob(job.id,{deadline:date.value})));dl.append(date);controls.append(dl);
@@ -49,7 +50,33 @@ export function mountWorkspace({storage=localStorage,getChatId,getLastReply,open
   if(!tracked.length)return empty(p,'No applications tracked yet. Save a recommended job or add one manually.');
   for(const status of applicationStatuses){const group=el('section',undefined,'application-group');group.append(el('h2',status==='In progress'?'In progress · finish these applications':status));for(const job of tracked.filter(j=>j.status===status))group.append(postingCard(job,true));if(!tracked.some(j=>j.status===status))group.append(el('p','No jobs in this stage.','small-note'));p.append(group);}
  }
- function render(){try{const state=store.read();if(selected==='plan')plans(state);if(selected==='jobs')jobs(state);if(selected==='applications')applications(state);if(selected!=='chat')panels.get(selected).append(el('p','Saved in this browser only. Plans, jobs and application notes do not sync across devices. Avoid sensitive details on shared computers.','small-note'));}catch(e){notify(e.message);}}
+ function startResearch(company,role=''){
+  if(isBusy()){notify('Wait for the current response before starting research.');return;}
+  const message='Research the employer: '+company+'. Target role: '+(role||'general career exploration')+'. Prepare a cited company briefing covering its business, products, dated recent news, careers information and suggested interview questions.';
+  if(!isAIEnabled()){show('chat');ask(message);return;}
+  researchPending=company;researchMessage='';render();ask(message);
+ }
+ function companyCard(company,favoriteView=false){
+  const card=el('article',undefined,'workspace-card');card.append(el('h2',company.company));if(company.role)card.append(el('p','Target role: '+company.role,'job-company'));
+  if(company.checkedAt)card.append(el('small','Researched '+new Date(company.checkedAt).toLocaleDateString()+' · Verify current details using the sources.'));
+  if(company.text){const report=el('details',undefined,'company-briefing');report.open=!favoriteView;report.append(el('summary','Company research briefing'));const prose=el('p',undefined,'saved-prose');appendJobLinks(prose,company.text);report.append(prose);if(company.sources.length){report.append(el('h3','Research sources'));for(const source of company.sources){const a=el('a',source.title+' ↗');a.href=source.url;a.target='_blank';a.rel='noopener noreferrer';const p=el('p');p.append(a);report.append(p);}}card.append(report);}
+  else card.append(el('p','Research this employer to build a cited briefing.','small-note'));
+  const actions=el('div',undefined,'workspace-actions');actions.append(button(company.favorite?'★ Remove favorite':'☆ Favorite company',()=>run(()=>store.updateCompany(company.id,{favorite:!company.favorite}))),button(company.text?'Refresh research':'Research company',()=>{show('employers');startResearch(company.company,company.role);}));
+  if(company.text)actions.append(button('Discuss with coach',()=>discuss(company,'Help me prepare for an interview with '+company.company+' using this saved employer research. Treat the saved information as dated and verify any current claims before relying on them.')));
+  actions.append(button('Find jobs at this company',()=>{show('chat');ask('Find actual job postings at '+company.company+(company.role?' for '+company.role:'')+'. Use the experience and preferences I have shared.');}));card.append(actions);
+  if(favoriteView){const label=el('label','Your company notes'),notes=el('textarea');notes.rows=3;notes.maxLength=4000;notes.value=company.notes;notes.placeholder='Why you are interested, roles to watch, or interview preparation notes';label.append(notes);const controls=el('div',undefined,'application-controls');controls.append(label,button('Save company notes',()=>run(()=>store.updateCompany(company.id,{notes:notes.value}))));card.append(controls);}
+  return card;
+ }
+ function employers(state){const p=panels.get('employers');heading(p,'Research an employer','Explore a company’s business, products, dated news and interview preparation with cited web research. Uses your API key; saved briefings can become outdated.');
+  const form=el('form',undefined,'job-search-form'),company=el('input'),role=el('input');company.required=true;company.maxLength=160;company.placeholder='Company name or official website';company.setAttribute('aria-label','Company to research');role.maxLength=160;role.placeholder='Target role (optional)';role.setAttribute('aria-label','Role for employer research');const go=el('button',researchPending?'Researching…':'Research employer','chip');go.type='submit';go.disabled=!!researchPending;form.append(company,role,go);form.addEventListener('submit',event=>{event.preventDefault();if(company.value.trim())startResearch(company.value.trim(),role.value.trim());});p.append(form);
+  if(researchPending){const status=el('p','Researching '+researchPending+' using live web sources…','research-status');status.setAttribute('role','status');p.append(status);}else if(researchMessage)p.append(el('p',researchMessage,'research-status'));
+  const researched=state.companies.filter(c=>c.text);if(!researched.length)return empty(p,'No employer briefings saved yet. Enter a company above, or choose Research employer on a saved job.');for(const c of researched)p.append(companyCard(c));
+ }
+ function favorites(state){const p=panels.get('favorites');heading(p,'Your favorite companies','Keep a shortlist of employers, research briefings and personal notes. You can favorite companies from job cards or research results.');
+  const form=el('form',undefined,'job-search-form'),name=el('input');name.required=true;name.maxLength=160;name.placeholder='Add a company to your favorites';name.setAttribute('aria-label','Company to favorite');const add=el('button','Favorite company','chip');add.type='submit';form.append(name,add);form.addEventListener('submit',event=>{event.preventDefault();if(name.value.trim())run(()=>store.saveCompany({company:name.value.trim()},getChatId(),{favorite:true}));});p.append(form);
+  const saved=state.companies.filter(c=>c.favorite);if(!saved.length)return empty(p,'No favorite companies yet. Add a company above or favorite one while exploring jobs.');for(const c of saved)p.append(companyCard(c,true));
+ }
+ function render(){try{const state=store.read();if(selected==='plan')plans(state);if(selected==='jobs')jobs(state);if(selected==='applications')applications(state);if(selected==='employers')employers(state);if(selected==='favorites')favorites(state);if(selected!=='chat')panels.get(selected).append(el('p','Saved in this browser only. Plans, jobs, companies and notes do not sync across devices. Avoid sensitive details on shared computers.','small-note'));}catch(e){notify(e.message);}}
  window.addEventListener('storage',e=>{if(e.key===workspaceKey)render();});show('chat');
- return {showChat:()=>show('chat'),saveAnswer(answer){run(()=>{if(answer.careerPlan)store.savePlan(answer.careerPlan,getChatId());if(answer.jobSearch?.jobs?.length)store.addJobs(answer.jobSearch.jobs,getChatId(),answer.jobSearch.query);});},savePlan(plan){run(()=>store.savePlan(plan,getChatId()));},detachChat(id){run(()=>store.detachChat(id));}};
+ return {showChat:()=>show('chat'),saveAnswer(answer){run(()=>{if(answer.careerPlan)store.savePlan(answer.careerPlan,getChatId());if(answer.jobSearch?.jobs?.length)store.addJobs(answer.jobSearch.jobs,getChatId(),answer.jobSearch.query);if(answer.employerResearch){store.saveCompany(answer.employerResearch,getChatId());researchPending='';researchMessage='Research saved. You can favorite this company or discuss the briefing with Stride.';}});},requestFinished(){if(researchPending){researchPending='';researchMessage='Research did not return a saved briefing. Open Chat for details, check your API key, or retry with the exact company name.';render();}},savePlan(plan){run(()=>store.savePlan(plan,getChatId()));},detachChat(id){run(()=>store.detachChat(id));}};
 }
