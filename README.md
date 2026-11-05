@@ -1,4 +1,4 @@
-# Career Compass — multi-agent career coach (0.9.0)
+# Stride — multi-agent career coach (0.9.0)
 
 A conversational career coach for college students, with resume/job evidence checks, interview drafting and practice, role exploration, and four-week plans.
 
@@ -18,7 +18,7 @@ See [architecture and limits](docs/Multi-Agent-Architecture.md) and [the evidenc
 
 Open the public interface, select **API key** (or **Use AI with my key** on the welcome screen), enter your OpenAI API key, and choose **Use key for this tab**. No download or local server is needed. Your API account pays for model calls; the key must have model access and available quota. Authentication is checked on the first AI request.
 
-The app retains the key only in this tab’s memory. It is sent in the Authorization header over HTTPS to the configured Career Compass backend for each AI request and then used server-side for OpenAI. It is not written to chats, exports, browser storage or application logs, and is not included in model input. Refreshing, closing the tab or choosing Clear my key removes the application’s reference. You must trust this site, its scripts and hosting to handle your credential; running a local copy remains an alternative.
+The app retains the key only in this tab’s memory. It is sent in the Authorization header over HTTPS to the configured Stride backend for each AI request and then used server-side for OpenAI. It is not written to chats, exports, browser storage or application logs, and is not included in model input. Refreshing, closing the tab or choosing Clear my key removes the application’s reference. You must trust this site, its scripts and hosting to handle your credential; running a local copy remains an alternative.
 
 The public backend requires a visitor key on every chat request and never uses the owner’s stored key as a fallback. No key means practice mode with local templates. Shared availability/request limits still apply. Local copies can continue using their private server .env, or temporarily override it with a tab key.
 
@@ -32,7 +32,7 @@ Without an API key, practice mode uses local templates and does not run AI agent
 
 ## GitHub Pages publication
 
-The Publish Career Compass to GitHub Pages workflow tests the project, builds a static-only artifact and deploys it on pushes to main. Set Pages to GitHub Actions. The public backend URL comes from dist/api-config.json or the optional CAREER_COMPASS_API_URL repository variable. The value is a public URL, never an API key. Pages cannot execute the Node backend or keep browser credentials secret.
+The Publish Stride to GitHub Pages workflow tests the project, builds a static-only artifact and deploys it on pushes to main. Set Pages to GitHub Actions. The public backend URL comes from dist/api-config.json or the optional CAREER_COMPASS_API_URL repository variable. The value is a public URL, never an API key. Pages cannot execute the Node backend or keep browser credentials secret.
 
 AI backend changes require a separate backend deployment. Uploading this repository alone does not update that service. A compatible Node backend is included for independent hosting; render.yaml is an optional example, not a claim that a Render service has been deployed.
 
