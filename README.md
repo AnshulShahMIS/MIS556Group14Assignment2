@@ -1,4 +1,4 @@
-# Stride — multi-agent career coach (0.11.1)
+# Stride — multi-agent career coach (0.11.3)
 
 ## Professor setup: private .env file
 
@@ -18,11 +18,15 @@ Specialists retrieve the career guidance library before generation. Resume analy
 
 See [architecture and limits](docs/Multi-Agent-Architecture.md) and [the evidence-tool fix](evaluation/Resume-Evidence-Fix.md). The same configurable model, gpt-4.1-mini by default, runs the distinct agent roles.
 
-## Credentials: private local .env only
+## Use your own key on the public website
 
-The interface has no key-entry form. On the public GitHub Pages site, AI setup opens read-only setup instructions. Practice tools and the Offers calculator work without credentials. For live AI, download the project and follow PROFESSOR-START-HERE.md to create your own private local .env. Never edit a GitHub source file to insert a real key. .env.example is only a blank template, not a place to upload a credential. GitHub Pages cannot execute the Node backend or read your computer’s .env. GitHub Actions secrets must never be built into frontend files.
+Open https://anshulshahmis.github.io/MIS556Group14Assignment2/, select **API key** or **Use AI with my key**, enter your own **OpenAI API key**, and choose **Use key for this tab**. Full AI works through the hosted backend without downloading the project or running a terminal. API usage is billed to that visitor’s OpenAI API account; a ChatGPT subscription and API billing are separate.
 
-The browser enables live AI only on localhost with a configured local server. It sends no visitor Authorization header and does not collect, store or manage a browser key. The existing hosted API continues rejecting unauthenticated calls and never falls back to the owner key; removing the form does not expose shared owner-funded AI.
+The OpenAI dialog follows the reference layout with a masked input, a key-dashboard link, a privacy explanation, connection status, and Use key for this tab / Clear key / Cancel actions. It is an OpenAI integration for ChatGPT models; it does not accept a Gemini key or a ChatGPT website login.
+
+Keys remain in a per-tab closure and are never written to browser storage, chats, exports or repository files. Submitting or cancelling clears the input. Refreshing/closing clears the in-memory key; back/forward cache restoration also clears it. Each AI request forwards the visitor key over HTTPS to the configured Stride service, which uses it server-side with OpenAI. The user must trust the website and backend with that credential. Format is checked locally; actual authentication, model access and quota are checked by the first AI request. A rejected tab key is cleared. No key means labelled practice mode, unless a local copy already has its own .env key.
+
+The public backend requires each visitor’s key and never falls back to the owner’s stored credential. Clear key ends tab-key usage; on a locally configured copy it returns to that copy’s server key. Source documents and recent context go through the backend to OpenAI for AI generation. Never commit a real key to GitHub or put one into .env.example. The private local .env workflow remains an optional alternative.
 
 ## Run your own copy with your own API key
 
@@ -40,21 +44,21 @@ AI backend changes require a separate backend deployment. Uploading this reposit
 
 ## Testing and limits
 
-166 automated tests pass with node --test tests/*.test.mjs. Fictional development results are in evaluation/. Live scripts are opt-in paid API checks, not part of the offline suite. They do not establish real student usefulness or guaranteed factual accuracy. Student feedback and the final presentation remain.
+174 automated tests pass with node --test tests/*.test.mjs. Fictional development results are in evaluation/. Live scripts are opt-in paid API checks, not part of the offline suite. They do not establish real student usefulness or guaranteed factual accuracy. Student feedback and the final presentation remain.
 
 Each request has at most 16 model calls, three sequential specialist consultations and a 120-second HTTP timeout. Specialist calls cap output at 1,200 tokens; coordinator calls at 1,500. Multiple agents can increase latency and input/output usage. Local and hosted request counters are process/isolate-local, reset on restart, and are not durable billing caps.
 
-Messages, supplied document text, recent history and relevant guidance are sent through the backend to OpenAI in AI mode. Credentials are loaded by the local server from a private .env or environment variable and are never entered in the browser. store:false is requested; this does not promise zero provider retention. Use redacted inputs. Up to 25 chats, including supplied context, remain in this browser until deleted; they do not sync across devices. No API keys or real student resumes are packaged in this repository.
+Messages, supplied document text, recent history and relevant guidance are sent through the backend to OpenAI in AI mode. Public users enter a transient tab key; local users can instead load their key from a private .env or environment variable. Neither workflow writes keys to browser storage or shared source files. store:false is requested; this does not promise zero provider retention. Use redacted inputs. Up to 25 chats, including supplied context, remain in this browser until deleted; they do not sync across devices. No API keys or real student resumes are packaged in this repository.
 
 ## Find actual job postings
 
 In AI mode ask, for example: "Find cybersecurity analyst jobs in Phoenix and remote US roles." The planning specialist uses live OpenAI web search and checks individual employer/ATS posting pages before returning title, employer, location, available date/salary and application links. Missing details are labelled Not listed. Indexed postings can be stale and matching is imperfect; confirm availability and requirements on the employer page.
 
-Search uses two model calls within the existing request budget, plus OpenAI web-search charges on your own API account. Search keywords are sent to OpenAI web search; the complete resume is not used as the search query. Live search runs in the downloaded local app using your private .env; the public interface does not collect keys. Supported-source coverage and checks are documented in [evaluation/Live-Job-Search.md](evaluation/Live-Job-Search.md).
+Search uses two model calls within the existing request budget, plus OpenAI web-search charges on your own API account. Search keywords are sent to OpenAI web search; the complete resume is not used as the search query. Live search works on the public interface with a visitor-owned tab key, or in a local copy with a private .env. Supported-source coverage and checks are documented in [evaluation/Live-Job-Search.md](evaluation/Live-Job-Search.md).
 
 ## Career workspace tabs
 
-Chat, Career Plan, Recommended Jobs and Applications keep generated work available to revisit. Plans save versions and weekly completion. Actual job-search results can be tracked as To apply, In progress or Applied, with deadlines and notes. Discuss with coach reopens the original chat. Older plans can be saved explicitly from the latest chat reply. The tracker never submits applications. Everything is saved in the same browser; there is no account sync.
+Eight tabs — Chat, Resume Optimizer, Career Plan, Offers, Recommended Jobs, Applications, Employer Research and Favorite Companies — keep generated work available to revisit. Plans save versions and weekly completion. Actual job-search results can be tracked as To apply, In progress or Applied, with deadlines and notes. Discuss with coach reopens the original chat. Older plans can be saved explicitly from the latest chat reply. The tracker never submits applications. Saved records remain in the same browser; there is no account sync.
 
 ## Employer research and favorite companies
 
@@ -62,13 +66,13 @@ The Employer Research tab searches live web sources for a named company, its pro
 
 Employer research is a scoped tool of the career planning specialist, with one extra model/web-search call inside the existing request budget. Only public company and optional role keywords enter the search request. Missing search evidence fails visibly rather than producing a model-memory company report. Source validation does not establish that every factual claim is supported.
 
-## Offer evaluation — 0.11.1
+## Offer evaluation — 0.11.3
 
 The fourth specialist evaluates student-supplied offers and drafts negotiation emails. The coordinator routes offer/compensation/negotiation requests to `consult_offer`; combined offer-and-plan requests consult both offer and career. There are four available specialists, but at most three unique specialists per request, unchanged from the previous version.
 
 Open **Offers** beside Career Plan. Add up to four offers, edit/delete them and compare compensation without an API key. Nothing is synced to an account. The form accepts disclosed annual USD amounts; blank values stay **Not listed**, while confirmed absent benefits can be entered as 0. Incomplete packages show disclosed subtotals and are excluded from complete-total rankings. The retirement fields mean employer match rate on employee contributions, up to the entered contribution cap as a percentage of base. The calculator assumes contribution up to that cap.
 
-**Discuss with coach** attaches the validated offers to the current chat. AI discussion and negotiation require the professor’s own `.env` key locally, using the downloaded local app. Offers remain in that chat’s context until a new chat is started. Offers can also be pasted in chat as JSON using the exact field names below; the same validator rejects unsupported fields and invalid numbers. Natural-language offer letters are untrusted text: use the form or JSON to provide calculation inputs rather than relying on model extraction.
+**Discuss with coach** attaches the validated offers to the current chat. AI discussion and negotiation use each visitor’s own OpenAI key through the public key dialog, or a local private .env. Offers remain in that chat’s context until a new chat is started. Offers can also be pasted in chat as JSON using the exact field names below; the same validator rejects unsupported fields and invalid numbers. Natural-language offer letters are untrusted text: use the form or JSON to provide calculation inputs rather than relying on model extraction.
 
 ```json
 {"offers":[{"company":"Fictional Alpha","role":"Graduate Analyst","location":"Phoenix, AZ","baseSalary":90000,"annualBonusTargetPct":5,"signingBonus":2000,"relocation":0,"equityTotalValue":0,"retirementMatchPct":0,"ptoDays":15}]}
@@ -79,3 +83,11 @@ Other optional fields: `annualBonus` (instead of `annualBonusTargetPct`), `vesti
 The bundled COL snapshot covers 30 US metros using BEA 2024 all-items Regional Price Parities, released February 19, 2026 and checked November 5, 2026. Remote (US) explicitly uses the national reference 100; unknown locations receive no adjustment. This is a dated approximation, not a personal budget, salary benchmark, or financial/legal advice. The tool ranks numbers, never decides which offer to accept. Review terms with appropriate career, benefits, legal or financial advisers.
 
 See [offer evaluation results](evaluation/Offer-Specialist.md) and [architecture](docs/Multi-Agent-Architecture.md). All automated offer examples are fictional; paid live offer-model checks have not been represented as completed.
+
+See [visitor-key dialog verification](evaluation/Public-Visitor-Key-UI.md). The earlier local-only and public-demo experiments are superseded by this visitor-key workflow. No shared owner-funded public testing is enabled.
+
+## Resume Optimizer
+
+Open **Resume Optimizer** immediately after Chat. Paste or upload your resume (PDF, DOCX, TXT or MD), paste the target job description, and select **Optimize my resume**. You can import both inputs from the current chat. Each input is limited to 18,000 characters. The request uses your existing AI connection and asks the resume specialist for a grounded resume draft, before/after bullet edits, supported keywords, gaps to verify and an application checklist. It forbids invented experience and fabricated ATS scores; model compliance still needs review.
+
+The result stays on the tab for copying or text download, with a link back to its original chat. Working inputs/results are memory-only in the optimizer; the submitted context and reply are retained in the browser’s existing chat history. A reload clears the optimizer working area; use the saved chat to retrieve the review. Failures keep inputs available for retry. See [optimizer verification](evaluation/Resume-Optimizer.md).

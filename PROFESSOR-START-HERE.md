@@ -1,6 +1,18 @@
-# Run Stride with your own .env file
+# Use Stride with your own OpenAI API key
 
-This download contains Stride's interface, multi-agent backend and career tools. No API key is included. Add your own OpenAI key to a private local `.env` file; the website has no key-entry form. Never insert a real key into a GitHub file or .env.example.
+Stride supports two ways to use your own key. No API key is included in the project. Never insert a real key into a committed GitHub file or .env.example.
+
+## Easiest option for the presentation and evaluation
+
+1. Open https://anshulshahmis.github.io/MIS556Group14Assignment2/.
+2. Select **API key** and paste your OpenAI API key into the masked field.
+3. Choose **Use key for this tab**, then send a career question. No download, Node installation or terminal is needed.
+
+The key stays in tab memory and is forwarded over HTTPS through Stride’s backend to OpenAI when you ask for AI help. It is not saved to browser storage, chats, exports or GitHub. Refreshing, closing or clearing removes the app’s tab copy. Your API account pays for requests; ChatGPT subscription billing is separate. Actual authentication, model access and quota are checked on your first AI request. Use this option only if you trust the app and backend. The public backend does not use the owner’s key as a fallback.
+
+## Optional private local setup
+
+The following steps keep key configuration in a private local .env. They are not required for using the public key dialog.
 
 ## Quick start
 
@@ -51,4 +63,4 @@ Chats, plans, companies and application notes remain in the same browser until r
 
 ## Public website
 
-The public interface is https://anshulshahmis.github.io/MIS556Group14Assignment2/. **GitHub Pages cannot read a .env file from your computer.** For file-based configuration, use the **localhost** address above. The public website provides practice tools and offline offer calculations. Its AI setup button links to these instructions; it does not collect keys. Only your downloaded local copy reads the private .env.
+The public interface is https://anshulshahmis.github.io/MIS556Group14Assignment2/. **GitHub Pages cannot read a .env file from your computer.** For file-based configuration, use the **localhost** address above. The public website offers live AI after you enter your own tab key. Without one it provides practice tools and offline offer calculations. A private .env on your computer still applies only to your downloaded local server.
