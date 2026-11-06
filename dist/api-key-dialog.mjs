@@ -1,0 +1,18 @@
+export function mountAPIKeyDialog({document,container,tabKey,apiBase='',hasLocalKey=false,onUse,onClear,onCancel}){
+ const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
+ const intro=el('p','Add your key to use live career coaching, resume feedback, interview help, job search and employer research. Requests use your OpenAI project’s quota and any applicable charges.','key-dialog-intro');
+ const link=el('a','Get a key in the OpenAI API dashboard ↗','key-dashboard-link');link.href='https://platform.openai.com/api-keys';link.target='_blank';link.rel='noopener noreferrer';
+ const form=el('form',undefined,'key-dialog-form'),label=el('label','OpenAI API key','key-dialog-label'),input=el('input');input.id='visitor-key';input.type='password';input.autocomplete='off';input.spellcheck=false;input.maxLength=512;input.placeholder='Paste your OpenAI API key';input.setAttribute('autocapitalize','none');input.setAttribute('data-api-secret','');label.htmlFor=input.id;
+ const privacy=el('p','Kept only in this tab’s memory; reloading or closing the tab clears it. When you request AI help, your key is sent over HTTPS through the configured Stride AI service to OpenAI. The app does not save it to browser storage, a database, chats or exports.','key-dialog-privacy');
+ if(!apiBase)privacy.textContent='Kept only in this tab’s memory; reloading or closing the tab clears it. Requests send the key to this local Stride server, then over HTTPS to OpenAI. The app does not save it to browser storage, a database, chats or exports.';
+ const billing=el('p','Use an OpenAI API key for ChatGPT models. A ChatGPT subscription does not include API usage; API billing is separate.','key-dialog-note');
+ const status=el('p',tabKey.has()?'A key is loaded for this tab. Enter another key to replace it.':hasLocalKey?'No tab key added. This local copy is already using its private .env key.':'No key added. Practice tools, saved workspaces and offer calculations work without one.','key-dialog-status');status.setAttribute('role','status');
+ const destination=el('p','AI service: '+(apiBase?new URL(apiBase).hostname:'this local server')+'. Use key entry only if you trust this app and its AI service. Authentication and API quota are checked on your first AI request.','key-dialog-note');
+ const error=el('p','','key-dialog-error');error.setAttribute('role','alert');input.setAttribute('aria-describedby','key-dialog-error');error.id='key-dialog-error';
+ const actions=el('div',undefined,'key-dialog-actions'),use=el('button','Use key for this tab','key-dialog-primary'),clear=el('button','Clear key','key-dialog-secondary'),cancel=el('button','Cancel','key-dialog-secondary');use.type='submit';clear.type=cancel.type='button';clear.disabled=!tabKey.has();actions.append(use,clear,cancel);
+ form.append(label,input,privacy,billing,status,destination,error,actions);container.append(intro,link,form);
+ form.addEventListener('submit',event=>{event.preventDefault();try{tabKey.set(input.value);input.value='';error.textContent='';clear.disabled=false;status.textContent='Your key is loaded for this tab.';onUse();}catch(problem){input.value='';error.textContent=problem.message;input.focus();}});
+ clear.addEventListener('click',()=>{tabKey.clear();input.value='';clear.disabled=true;error.textContent='';status.textContent=hasLocalKey?'Tab key cleared. The local server uses its private .env key.':'Key cleared. Practice tools work without a key.';onClear();});
+ cancel.addEventListener('click',()=>{input.value='';onCancel();});
+ input.focus();return {clearInput:()=>{input.value='';}};
+}

@@ -1,18 +1,20 @@
-import {createWorkspaceStore,workspaceKey,applicationStatuses,safePostingLink,companyKey} from './workspace-store.mjs?v=local-env-012';
-import {createOffersPanel} from './offer-workspace.mjs?v=local-env-012';
+import {createResumeOptimizer} from './resume-optimizer.mjs';
+import {createWorkspaceStore,workspaceKey,applicationStatuses,safePostingLink,companyKey} from './workspace-store.mjs?v=optimizer-016';
+import {createOffersPanel} from './offer-workspace.mjs?v=optimizer-016';
 import {appendJobLinks} from './job-links.mjs';
-export function mountWorkspace({storage=localStorage,getChatId,getLastReply,isAIEnabled=()=>true,isBusy=()=>false,openChat,ask,notify}){
+export function mountWorkspace({storage=localStorage,getChatId,getLastReply,getContext,openKeySettings,isAIEnabled=()=>true,isBusy=()=>false,openChat,ask,notify}){
  const store=createWorkspaceStore(storage),$=s=>document.querySelector(s);
  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
  const button=(text,fn,cls='chip')=>{const b=el('button',text,cls);b.type='button';b.addEventListener('click',fn);return b;};
  const run=fn=>{try{fn();render();}catch(e){notify(e.message||'Could not save this workspace.');}};
  const nav=el('nav',undefined,'workspace-tabs');nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Career workspace');
  const panels=new Map();let selected='chat',researchPending='',researchMessage='',manualFormOpen=false,manualDraft={};
- const titles={chat:'Chat',plan:'Career Plan',offers:'Offers',jobs:'Recommended Jobs',applications:'Applications',employers:'Employer Research',favorites:'Favorite Companies'};
+ const titles={chat:'Chat',optimizer:'Resume Optimizer',plan:'Career Plan',offers:'Offers',jobs:'Recommended Jobs',applications:'Applications',employers:'Employer Research',favorites:'Favorite Companies'};
  for(const [id,title]of Object.entries(titles)){
   const tab=button(title,()=>show(id),'workspace-tab');tab.id='tab-'+id;tab.dataset.tab=id;tab.setAttribute('role','tab');tab.setAttribute('aria-controls',id==='chat'?'chat-scroll':'workspace-'+id);nav.append(tab);
   if(id!=='chat'){const panel=el('section',undefined,'workspace-panel');panel.id='workspace-'+id;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',tab.id);panel.hidden=true;panels.set(id,panel);}
  }
+ const optimizer=createResumeOptimizer({document,panel:panels.get('optimizer'),getContext,getChatId,isAIEnabled,isBusy,ask,openKeySettings,showChat:id=>{if(id)openChat(id);show('chat');},notify});
  const offerPanel=createOffersPanel({document,panel:panels.get('offers'),store,notify,discuss:offers=>{if(isBusy()){notify('Wait for the current reply before discussing offers.');return;}show('chat');ask('Help me compare these job offers. Use my stated priorities, flag missing information and terms to verify.',{offers});}});
  $('.workspace > header').after(nav);for(const panel of panels.values())$('.workspace').append(panel);
  $('#chat-scroll').setAttribute('role','tabpanel');$('#chat-scroll').setAttribute('aria-labelledby','tab-chat');
@@ -88,7 +90,7 @@ export function mountWorkspace({storage=localStorage,getChatId,getLastReply,isAI
   const form=el('form',undefined,'job-search-form'),name=el('input');name.required=true;name.maxLength=160;name.placeholder='Add a company to your favorites';name.setAttribute('aria-label','Company to favorite');const add=el('button','Favorite company','chip');add.type='submit';form.append(name,add);form.addEventListener('submit',event=>{event.preventDefault();if(name.value.trim())run(()=>store.saveCompany({company:name.value.trim()},getChatId(),{favorite:true}));});p.append(form);
   const saved=state.companies.filter(c=>c.favorite);if(!saved.length)return empty(p,'No favorite companies yet. Add a company above or favorite one while exploring jobs.');for(const c of saved)p.append(companyCard(c,true));
  }
- function render(){try{const state=store.read();if(selected==='plan')plans(state);if(selected==='offers')offerPanel.render();if(selected==='jobs')jobs(state);if(selected==='applications')applications(state);if(selected==='employers')employers(state);if(selected==='favorites')favorites(state);if(selected!=='chat')panels.get(selected).append(el('p','Saved in this browser only. Plans, jobs, companies and notes do not sync across devices. Avoid sensitive details on shared computers.','small-note'));}catch(e){notify(e.message);}}
+ function render(){try{const state=store.read();if(selected==='optimizer')optimizer.render();if(selected==='plan')plans(state);if(selected==='offers')offerPanel.render();if(selected==='jobs')jobs(state);if(selected==='applications')applications(state);if(selected==='employers')employers(state);if(selected==='favorites')favorites(state);if(!['chat','optimizer'].includes(selected))panels.get(selected).append(el('p','Saved in this browser only. Plans, jobs, companies and notes do not sync across devices. Avoid sensitive details on shared computers.','small-note'));}catch(e){notify(e.message);}}
  window.addEventListener('storage',e=>{if(e.key===workspaceKey)render();});show('chat');
- return {showChat:()=>show('chat'),showOffers:()=>show('offers'),getOffers:()=>store.read().offers.map(({id,...o})=>o),saveAnswer(answer){run(()=>{if(answer.careerPlan)store.savePlan(answer.careerPlan,getChatId());if(answer.jobSearch?.jobs?.length)store.addJobs(answer.jobSearch.jobs,getChatId(),answer.jobSearch.query);if(answer.employerResearch){store.saveCompany(answer.employerResearch,getChatId());researchPending='';researchMessage='Research saved. You can favorite this company or discuss the briefing with Stride.';}});},requestFinished(){if(researchPending){researchPending='';researchMessage='Research did not return a saved briefing. Open Chat for details, check your API key, or retry with the exact company name.';render();}},savePlan(plan){run(()=>store.savePlan(plan,getChatId()));},detachChat(id){run(()=>store.detachChat(id));}};
+ return {showChat:()=>show('chat'),showOffers:()=>show('offers'),getOffers:()=>store.read().offers.map(({id,...o})=>o),saveAnswer(answer){optimizer.saveAnswer(answer);run(()=>{if(answer.careerPlan)store.savePlan(answer.careerPlan,getChatId());if(answer.jobSearch?.jobs?.length)store.addJobs(answer.jobSearch.jobs,getChatId(),answer.jobSearch.query);if(answer.employerResearch){store.saveCompany(answer.employerResearch,getChatId());researchPending='';researchMessage='Research saved. You can favorite this company or discuss the briefing with Stride.';}});},requestFinished(){optimizer.requestFinished();if(researchPending){researchPending='';researchMessage='Research did not return a saved briefing. Open Chat for details, check your API key, or retry with the exact company name.';render();}},savePlan(plan){run(()=>store.savePlan(plan,getChatId()));},detachChat(id){run(()=>store.detachChat(id));}};
 }
