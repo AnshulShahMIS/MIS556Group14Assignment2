@@ -7,9 +7,9 @@ test('only a configured loopback server enables AI; public status can never enab
  for(const host of ['anshulshahmis.github.io','example.com','localhost.evil.example',undefined])assert.equal(localAIEnabled({configured:true},host),false);
  assert.equal(localAIEnabled(null,'localhost'),false);
 });
-test('shipped interface has read-only setup help, no key dialog, credential collector or Authorization attachment',()=>{
+test('public visitor key path is explicit, tab-only and cleared across page lifecycle events',()=>{
  const script=readFileSync(new URL('../dist/chat.mjs',import.meta.url),'utf8'),html=readFileSync(new URL('../dist/index.html',import.meta.url),'utf8');
- assert.doesNotMatch(script,/createTabKey|tabKey|type='password'|visitor-key|openAISettings|data-api-secret/);
- assert.doesNotMatch(html,/id="api-settings"|id="connect-ai"|type="password"/);
- assert.match(script,/Never add a real key to .env.example or any committed GitHub file/);assert.match(script,/headers:\{'Content-Type':'application\/json'\}/);assert.match(html,/Run AI locally/);
+ assert.match(script,/tabKey\.has\(\)\|\|localAIEnabled\(apiConfig\)/);assert.match(script,/\.\.\.tabKey\.headers\(\)/);
+ assert.match(script,/pagehide[\s\S]*?tabKey\.clear\(\)/);assert.match(script,/pageshow[\s\S]*?tabKey\.clear\(\)/);assert.match(html,/Use AI with my key/);
+ assert.doesNotMatch(script,/connectPublicDemo|localStorage\.setItem\([^\n]*key/i);
 });
