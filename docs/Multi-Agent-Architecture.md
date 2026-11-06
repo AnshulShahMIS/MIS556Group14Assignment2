@@ -1,4 +1,4 @@
-# Stride multi-agent architecture — 0.11.1
+# Stride multi-agent architecture — 0.11.3
 
 GitHub Pages serves the static interface. A separately hosted backend calls the OpenAI Responses API. The professor can instead download the project, put their own key in a private .env beside serve.mjs, and run Start-Stride.cmd. No new npm dependencies were added.
 
@@ -65,8 +65,17 @@ draft_negotiation uses a short application-owned first-person template. The sele
 
 ## Single-agent baseline and offline mode
 
-CAREER_COMPASS_AGENT_MODE=single-agent retains the same validation, corpus, model and compare_offers / draft_negotiation tools. Required offer evidence and protected drafts also apply there; no delegation is added. Without a key, deterministic Offers calculations and storage work fully. General practice chat is template-based, not a live multi-agent run. AI discussion, negotiation drafting through chat, live jobs and employer research require the downloaded local backend and a private .env. The browser accepts no credentials and enables AI only on a configured localhost server. Hosted requests never fall back to the owner key.
+CAREER_COMPASS_AGENT_MODE=single-agent retains the same validation, corpus, model and compare_offers / draft_negotiation tools. Required offer evidence and protected drafts also apply there; no delegation is added. Without a key, deterministic Offers calculations and storage work fully. General practice chat is template-based, not a live multi-agent run. AI discussion, negotiation drafting through chat, live jobs and employer research require the downloaded local backend and a private .env. Public visitors may explicitly supply a per-tab OpenAI key; local copies can instead use a private .env. Neither path enables public owner-key fallback. Hosted requests never fall back to the owner key.
 
 ## Verification
 
 Run node --test tests/*.test.mjs. See [Offer-Specialist.md](../evaluation/Offer-Specialist.md) for recorded step results, fictional arithmetic examples, actual offline browser QA and limitations. Mock protocol tests do not establish live-model quality, user usefulness or better outcomes than the baseline. Student feedback and a paid live offer-model evaluation remain optional follow-up evaluation, not claimed completed work.
+
+## Public visitor key dialog
+
+The reference-style OpenAI dialog masks input and keeps accepted keys in the existing createTabKey closure. It has Use key for this tab, Clear key and Cancel actions. No persistent browser storage or serialized getter is used. Inputs clear on submission/cancellation/dialog close, and tab keys clear on page exit/refresh, cached-page restoration or provider authentication rejection. Existing source-context and history serialization excludes credential state.
+
+The frontend sends visitor credentials only in Authorization headers to the configured AI service. The service validates the request-scoped key and forwards it to OpenAI; it never substitutes the owner key on public requests. Visitors must trust the frontend and service, and their own API projects pay for usage. Format validation is not an authentication or billing check. The first AI request verifies actual API access. Local .env configuration remains optional and is not read by GitHub Pages. The unpublished public-to-local demo connection has been removed in favor of this direct public-site workflow.
+
+## Resume Optimizer tab
+The dedicated optimizer collects a resume and target job, passes them through the existing context validation and coordinator request, and asks for consultation with the existing resume specialist. No new agent or permissions are introduced. The specialist retains its existing required evidence tools and instruction scope. The tab displays the returned answer as text, supports copy/plain-text download, and links to the originating chat. It does not submit applications or calculate a claimed ATS score.
