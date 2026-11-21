@@ -1,4 +1,4 @@
-# Stride — multi-agent career coach (0.11.3)
+# Stride — multi-agent career coach
 
 ## Professor setup: private .env file
 
